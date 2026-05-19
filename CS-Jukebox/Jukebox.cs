@@ -10,6 +10,7 @@ namespace CS_Jukebox
         private SongProfile currentSong;
 
         private Timer fadeTimer;
+        private bool isFading = false;
 
         private bool isPlaying = false;
         private bool shouldStop = false;
@@ -60,7 +61,7 @@ namespace CS_Jukebox
 
         public void UpdateVolume()
         {
-            if (currentSong == null) return;
+            if (currentSong == null || isFading) return;
             float volume = ((float)Properties.MasterVolume / 100) * currentSong.Volume * active;
             player.settings.volume = (int)volume;
         }
@@ -69,37 +70,93 @@ namespace CS_Jukebox
         //StopSong() will be called. The fadeTimer only starts if it is done like this.
         public void Stop()
         {
-            shouldStop = true;
+            // Start fade immediately instead of deferring to the next tick
+            if (!isFading)
+            {
+                StopSong();
+                shouldStop = false;
+            }
         }
 
         private void StopSong()
         {
-            float fadeTime = 1f;
-            float startVolume = player.settings.volume;
-            fadeVolume = startVolume;
-            volumeIncrement = startVolume / ((1000 / 8) * fadeTime);
+            // If already fading, don't start another fade
+            if (isFading) return;
 
-            timerCount = 0;
+            float fadeDurationSeconds = 1.4f; // safer, smoother fade
+            const int intervalMs = 25; // smooth timer interval
+
+            float startVolume = 0f;
+            try { startVolume = player.settings.volume; } catch { startVolume = 0f; }
+
+            // If volume is already essentially zero, stop immediately
+            if (startVolume <= 1f)
+            {
+                try { player.controls.stop(); } catch { }
+                try { player.settings.volume = 0; } catch { }
+                isPlaying = false;
+                isFading = false;
+                return;
+            }
+
+            isFading = true;
+
+            fadeVolume = startVolume;
+            float steps = (fadeDurationSeconds * 1000f) / intervalMs;
+            volumeIncrement = (steps > 0) ? (startVolume / steps) : startVolume;
+
+            // Ensure any existing fade timer is stopped
+            if (fadeTimer != null)
+            {
+                fadeTimer.Stop();
+                fadeTimer.Tick -= new EventHandler(FadeTimerTick);
+                fadeTimer = null;
+            }
 
             fadeTimer = new Timer();
-            fadeTimer.Interval = 8;
+            fadeTimer.Interval = intervalMs;
             fadeTimer.Tick += new EventHandler(FadeTimerTick);
             fadeTimer.Start();
         }
 
         private void FadeTimerTick(object sender, EventArgs e)
         {
-            if (fadeVolume > 0)
+            try
             {
                 fadeVolume -= volumeIncrement;
-                player.settings.volume = (int)fadeVolume;
-                Console.WriteLine(fadeVolume);
+
+                if (fadeVolume > 1f)
+                {
+                    player.settings.volume = (int)fadeVolume;
+                }
+                else
+                {
+                    try { player.controls.stop(); } catch { }
+                    try { player.settings.volume = 0; } catch { }
+
+                    if (fadeTimer != null)
+                    {
+                        fadeTimer.Stop();
+                        fadeTimer.Tick -= new EventHandler(FadeTimerTick);
+                        fadeTimer = null;
+                    }
+
+                    isPlaying = false;
+                    isFading = false;
+                }
             }
-            else
+            catch
             {
-                player.controls.stop();
-                fadeTimer.Stop();
+                if (fadeTimer != null)
+                {
+                    fadeTimer.Stop();
+                    fadeTimer.Tick -= new EventHandler(FadeTimerTick);
+                    fadeTimer = null;
+                }
+                try { player.controls.stop(); } catch { }
+                try { player.settings.volume = 0; } catch { }
                 isPlaying = false;
+                isFading = false;
             }
         }
 
