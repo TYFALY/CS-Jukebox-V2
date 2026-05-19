@@ -1,7 +1,10 @@
 # CS-Jukebox
 Introducing CS-Jukebox, a tool that allows you to play your own custom music kits in CS2!
 
-https://github.com/user-attachments/assets/3cb6b9e2-8790-4727-a925-1da544aeca80
+
+https://github.com/user-attachments/assets/632eba6a-54f6-4d84-9a56-5fa5d2106998
+
+
 [![CS Jukebox Trailer](https://img.youtube.com/vi/s9UX5aizHTY/0.jpg)](https://www.youtube.com/watch?v=s9UX5aizHTY)
 ![image](https://user-images.githubusercontent.com/26579319/128274959-d2ada5f1-ac48-4d88-b7c0-4cf9a42ea790.png)
 
