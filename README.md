@@ -24,3 +24,10 @@ CS-Jukebox works by using CS2's official <a href="https://developer.valvesoftwar
 to read data from the game such as round phases, bomb states, and teams. This method is safe and will not cause any VAC bans.
 
 Credit to [rakijah](https://github.com/rakijah) for creating [CSGSI](https://github.com/rakijah/CSGSI) & TimosCodd (https://github.com/TimosCodd) for porting over to CS2.
+
+https://github.com/user-attachments/assets/3cb6b9e2-8790-4727-a925-1da544aeca80
+
+
+
+
+
