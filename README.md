@@ -79,11 +79,7 @@ For optimal timing, seamless transitions, and responsive gameplay syncing, follo
 1. Click **Add** on the dashboard.
 2. Enter a unique name for your music kit.
 3. Click **Browse** next to each event trigger and assign audio files.
-4. Adjust configuration properties:
-   - Volume offsets
-   - Start positions
-   - Timing behavior
-5. Click **Save**.
+4. Click **Save**.
 
 ---
 
