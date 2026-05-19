@@ -1,6 +1,7 @@
 # CS-Jukebox
 Introducing CS-Jukebox, a tool that allows you to play your own custom music kits in CS2!
 
+https://github.com/user-attachments/assets/3cb6b9e2-8790-4727-a925-1da544aeca80
 [![CS Jukebox Trailer](https://img.youtube.com/vi/s9UX5aizHTY/0.jpg)](https://www.youtube.com/watch?v=s9UX5aizHTY)
 ![image](https://user-images.githubusercontent.com/26579319/128274959-d2ada5f1-ac48-4d88-b7c0-4cf9a42ea790.png)
 
@@ -25,7 +26,6 @@ to read data from the game such as round phases, bomb states, and teams. This me
 
 Credit to [rakijah](https://github.com/rakijah) for creating [CSGSI](https://github.com/rakijah/CSGSI) & TimosCodd (https://github.com/TimosCodd) for porting over to CS2.
 
-https://github.com/user-attachments/assets/3cb6b9e2-8790-4727-a925-1da544aeca80
 
 
 
