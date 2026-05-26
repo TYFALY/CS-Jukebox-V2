@@ -1,26 +1,121 @@
-# CS-Jukebox
-Introducing CS-Jukebox, a tool that allows you to play your own custom music kits in CS2!
+# CS-Jukebox V2
 
-[![CS Jukebox Trailer](https://img.youtube.com/vi/s9UX5aizHTY/0.jpg)](https://www.youtube.com/watch?v=s9UX5aizHTY)
-![image](https://user-images.githubusercontent.com/26579319/128274959-d2ada5f1-ac48-4d88-b7c0-4cf9a42ea790.png)
+Play your own custom, reactive music kits in Counter-Strike 2 using official Game State Integration.
 
-# Getting Started
-1. [Download the latest release](https://github.com/zzhabib/CS-Jukebox/releases/download/v1.01/CS.Jukebox.v1.01.zip) (Windows only).
-2. Extract the folder inside the zip.
-3. Launch CS-Jukebox.exe
-4. Jukebox will ask you to locate the root folder for CS2. This is the folder "game" in your game root (steamapps\common\Counter-Strike Global Offensive\game)
-5. If CS2 is open, it must be restarted for Jukebox to work.
+https://github.com/user-attachments/assets/c1716a56-5743-4b0f-a908-a70c812e4016
 
-# How to create kits
-Creating a music kit can be easily done inside CS-Jukebox
-1. Click the "Add" button on the main screen.
-2. Create a name for the music kit.
-3. For each song, click browse to navigate to a song downloaded on your computer.
-4. Adjust any controls such as Volume or Start Position.
-5. Click Save and enjoy your music kit.
 
-# How it works
-CS-Jukebox works by using CS2's official <a href="https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration">GameState Integration</a>
-to read data from the game such as round phases, bomb states, and teams. This method is safe and will not cause any VAC bans.
 
-Credit to [rakijah](https://github.com/rakijah) for creating [CSGSI](https://github.com/rakijah/CSGSI) & TimosCodd (https://github.com/TimosCodd) for porting over to CS2.
+[Watch the Trailer](https://www.youtube.com/watch?v=s9UX5aizHTY)
+---
+
+## 🚀 Getting Started
+
+### Prerequisites & Download
+
+1. Download the latest compiled package:
+   **[Download CS-Jukebox V2 Release](https://github.com/TYFALY/CS-Jukebox-V2/releases/download/v1.0.0/CS.Jukebox.v2.rar)** *(Windows only)*
+
+2. Extract the `.rar` archive to a folder on your PC.
+
+---
+
+## 📦 Installation & First-Time Setup
+
+1. Launch `CS-Jukebox.exe`
+
+2. The application will prompt you to select your CS2 root directory.
+
+Navigate to:
+
+```text
+...\Steam\steamapps\common\Counter-Strike Global Offensive\game
+```
+
+3. If Counter-Strike 2 is already running, restart the game after setup to initialize the integration.
+
+---
+
+## 🛠️ Troubleshooting — Directory Detection Fix
+
+If the built-in file browser fails to recognize your installation path:
+
+1. Open your Counter-Strike 2 `game` folder in Windows Explorer.
+2. Create a blank text file named:
+
+```text
+csgo.txt
+```
+
+3. Rename the extension from `.txt` to `.exe` so it becomes:
+
+```text
+csgo.exe
+```
+
+4. Run the CS-Jukebox directory browser again and re-select the folder.
+
+The application should now successfully verify the path.
+
+---
+
+## 🎵 Creating Custom Music Kits
+
+All custom audio tracks must be provided by the user.
+
+For optimal timing, seamless transitions, and responsive gameplay syncing, these durations are recommended:
+
+| Event / Track        | Ideal Length       | Purpose              |
+| -------------------- | ------------------ | -------------------- |
+| Main Menu            | Ambient / Loopable | Idle menu music      |
+| Round Start          | 5–10 sec           | Spawn intro          |
+| Action / Choose Team | 10–15 sec          | Warmup & team select |
+| MVP Anthem           | ~10 sec            | Round MVP            |
+| Bomb Planted         | ~40 sec            | Bomb timer tension   |
+| 10-Second Count      | Exactly 10 sec     | Final warning        |
+| Round Won / Lost     | ~10 sec            | Round result outro   |
+
+### Configuration Steps
+
+1. Click **Add** on the dashboard.
+2. Enter a unique name for your music kit.
+3. Click **Browse** next to each event trigger and assign audio files.
+4. Click **Save**.
+
+---
+
+## ⚙️ How It Works
+
+CS-Jukebox uses Valve’s official **Game State Integration (GSI)** system to react to real-time gameplay events such as:
+
+* Round phases
+* Bomb states
+* Team changes
+* MVP events
+
+The application:
+
+* Does **not** inject code
+* Does **not** modify game memory
+* Does **not** bypass anti-cheat systems
+
+✅ 100% VAC Safe
+
+---
+
+## ❤️ Support the Project
+
+If you enjoy CS-Jukebox V2 and want to support future updates, you can donate here:
+
+**PayPal:**
+https://www.paypal.com/paypalme/TYFALY
+
+Support is completely optional, but always appreciated.
+
+---
+
+## 👥 Credits
+
+* Original framework architecture by **rakijah (CSGSI)**
+* CS2 endpoint migration & updates by **TimosCodd**
+* Playback loop fixes, UI improvements & V2 distribution by **TYFALY**
