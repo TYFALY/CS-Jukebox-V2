@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/c1716a56-5743-4b0f-a908-a70c812e4016
 ### Prerequisites & Download
 
 1. Download the latest compiled package:
-   **[Download CS-Jukebox V2 Release](https://github.com/TYFALY/CS-Jukebox-V2/releases/download/v1.0.0/CS.Jukebox.v2.rar)** *(Windows only)*
+   **[Download CS-Jukebox V2 Release](https://github.com/TYFALY/CS-Jukebox-V2/releases/download/v1.0.1/CS.Jukebox.v2.rar)** *(Windows only)*
 
 2. Extract the `.rar` archive to a folder on your PC.
 
