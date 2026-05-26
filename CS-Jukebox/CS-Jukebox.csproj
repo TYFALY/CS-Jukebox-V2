@@ -2,11 +2,17 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <RootNamespace>CS_Jukebox</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
     <StartupObject>CS_Jukebox.Program</StartupObject>
     <ApplicationIcon>logo.ico</ApplicationIcon>
+    <!-- Publish as self-contained by default to avoid requiring pre-installed runtime on target machines -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSelfContained>true</PublishSelfContained>
+    <!-- Avoid aggressive trimming for compatibility with COM interop and dynamic features -->
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
