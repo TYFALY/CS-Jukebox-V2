@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>CSGSI</RootNamespace>
+    <AssemblyName>CSGSI</AssemblyName>
+    <!-- Keep existing AssemblyInfo.cs; avoid SDK-generated assembly attributes to prevent duplication -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Disable SDK implicit Compile items because this project lists explicit <Compile> items -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>TRACE</DefineConstants>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Events\BombDefusedEventArgs.cs" />
+    <Compile Include="Events\BombExplodedEventArgs.cs" />
+    <Compile Include="Events\BombPlantedEventArgs.cs" />
+    <Compile Include="Events\PlayerFlashedEventArgs.cs" />
+    <Compile Include="Events\RoundBeginEventArgs.cs" />
+    <Compile Include="Events\RoundEndEventArgs.cs" />
+    <Compile Include="Events\RoundPhaseChangedEventArgs.cs" />
+    <Compile Include="GameState.cs" />
+    <Compile Include="GameStateListener.cs" />
+    <Compile Include="IGameStateListener.cs" />
+    <Compile Include="Nodes\AllPlayersNode.cs" />
+    <Compile Include="Nodes\AuthNode.cs" />
+    <Compile Include="Nodes\BombNode.cs" />
+    <Compile Include="Nodes\Flame.cs" />
+    <Compile Include="Nodes\GrenadeNode.cs" />
+    <Compile Include="Nodes\GrenadesNode.cs" />
+    <Compile Include="Nodes\MapNode.cs" />
+    <Compile Include="Nodes\MapRoundWinsNode.cs" />
+    <Compile Include="Nodes\MatchStatsNode.cs" />
+    <Compile Include="Nodes\NodeBase.cs" />
+    <Compile Include="Nodes\PhaseCountdownsNode.cs" />
+    <Compile Include="Nodes\PlayerNode.cs" />
+    <Compile Include="Nodes\ProviderNode.cs" />
+    <Compile Include="Nodes\RoundNode.cs" />
+    <Compile Include="Nodes\PlayerStateNode.cs" />
+    <Compile Include="Nodes\MapTeamNode.cs" />
+    <Compile Include="Nodes\WeaponNode.cs" />
+    <Compile Include="Nodes\WeaponsNode.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Vector3.cs" />
+  </ItemGroup>
+  <!-- Microsoft.CSharp.targets is imported automatically by the SDK; explicit import removed to avoid duplicate import warning -->
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
