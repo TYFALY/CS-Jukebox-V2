@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 using WMPLib;
 
@@ -42,6 +43,26 @@ namespace CS_Jukebox
             CancelFade();
             currentSong = song;
 
+            // Calculate normalization gain on first play if not computed
+            try
+            {
+                if (currentSong.NormalizationGain <= 0f)
+                {
+                    if (File.Exists(currentSong.Path))
+                    {
+                        currentSong.NormalizationGain = AudioUtils.CalculateNormalizationGain(currentSong.Path);
+                    }
+                    else
+                    {
+                        currentSong.NormalizationGain = 1f;
+                    }
+                }
+            }
+            catch
+            {
+                currentSong.NormalizationGain = 1f;
+            }
+
             UpdateVolume();
             player.settings.setMode("loop", loop);
             player.URL = song.Path;
@@ -63,8 +84,17 @@ namespace CS_Jukebox
         public void UpdateVolume()
         {
             if (currentSong == null || isFading) return;
-            float volume = ((float)Properties.MasterVolume / 100) * currentSong.Volume * (IsGameFocused() ? 1 : 0);
-            player.settings.volume = (int)volume;
+
+            // Properties.MasterVolume = 0..100, currentSong.Volume = 0..100
+            float master = (float)Properties.MasterVolume / 100f;
+            float songVol = (float)currentSong.Volume / 100f;
+            float focus = IsGameFocused() ? 1f : 0f;
+
+            float norm = (currentSong.NormalizationGain > 0f) ? currentSong.NormalizationGain : 1f;
+
+            float effective = master * songVol * norm * focus;
+            int winVol = (int)Math.Clamp(effective * 100f, 0f, 100f);
+            player.settings.volume = winVol;
         }
 
         //Stops the current track with a smooth fade.

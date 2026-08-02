@@ -8,6 +8,8 @@ namespace CS_Jukebox
     {
         MusicKit currentKit = null; //Music kit currently being edited
         bool createMode = false;
+        private Jukebox previewJukebox;
+        private string playingPreviewPath = null;
 
         public MusicSelector(MusicKit newKit, bool? createKit)
         {
@@ -19,6 +21,9 @@ namespace CS_Jukebox
 
             LoadKitParameters();
             AddExtraSongsButtons();
+
+            // Jukebox used for previewing individual tracks inside the editor
+            previewJukebox = new Jukebox();
         }
 
         private void MusicSelector_Load(object sender, EventArgs e)
@@ -217,6 +222,64 @@ namespace CS_Jukebox
         {
             OpenSongFile(menuTextBox);
         }
+
+        // Preview button handlers
+        private void TogglePreview(TextBox textBox, Button previewButton)
+        {
+            string path = textBox.Text;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                MessageBox.Show("No file selected to preview.", "Preview", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                // If the same track is playing, stop it
+                if (playingPreviewPath != null && playingPreviewPath == path)
+                {
+                    previewJukebox.Stop();
+                    playingPreviewPath = null;
+                    previewButton.Text = "▶";
+                    return;
+                }
+
+                // Otherwise play this track and update button texts
+                previewJukebox.PlaySong(path);
+                playingPreviewPath = path;
+
+                // Reset all preview buttons' text to play
+                foreach (var ctrl in this.Controls)
+                {
+                    if (ctrl is GroupBox gb)
+                    {
+                        foreach (Control c in gb.Controls)
+                        {
+                            if (c is Button b && b.Name != previewButton.Name && b.Name.EndsWith("PreviewButton"))
+                            {
+                                b.Text = "▶";
+                            }
+                        }
+                    }
+                }
+
+                previewButton.Text = "■";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to preview file: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void freezePreviewButton_Click(object sender, EventArgs e) => TogglePreview(freezeTextBox, freezePreviewButton);
+        private void startPreviewButton_Click(object sender, EventArgs e) => TogglePreview(startTextBox, startPreviewButton);
+        private void bombPreviewButton_Click(object sender, EventArgs e) => TogglePreview(bombTextBox, bombPreviewButton);
+        private void wonPreviewButton_Click(object sender, EventArgs e) => TogglePreview(wonTextBox, wonPreviewButton);
+        private void lostPreviewButton_Click(object sender, EventArgs e) => TogglePreview(lostTextBox, lostPreviewButton);
+        private void MVPPreviewButton_Click(object sender, EventArgs e) => TogglePreview(MVPTextBox, MVPPreviewButton);
+        private void bombTenSecPreviewButton_Click(object sender, EventArgs e) => TogglePreview(bombTenSecTextBox, bombTenSecPreviewButton);
+        private void roundTenSecPreviewButton_Click(object sender, EventArgs e) => TogglePreview(roundTenSecTextBox, roundTenSecPreviewButton);
+        private void menuPreviewButton_Click(object sender, EventArgs e) => TogglePreview(menuTextBox, menuPreviewButton);
 
         private void freezeStartTextbox_KeyPress(object sender, KeyPressEventArgs e)
         {

@@ -121,6 +121,18 @@ namespace CS_Jukebox
             this.freezeButton.UseVisualStyleBackColor = true;
             this.freezeButton.Click += new System.EventHandler(this.freezeButton_Click);
             // 
+            // freezePreviewButton
+            // 
+            this.freezePreviewButton = new System.Windows.Forms.Button();
+            this.freezePreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.freezePreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.freezePreviewButton.Name = "freezePreviewButton";
+            this.freezePreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.freezePreviewButton.TabIndex = 2;
+            this.freezePreviewButton.Text = "▶";
+            this.freezePreviewButton.UseVisualStyleBackColor = true;
+            this.freezePreviewButton.Click += new System.EventHandler(this.freezePreviewButton_Click);
+            // 
             // freezeTextBox
             // 
             this.freezeTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -136,6 +148,7 @@ namespace CS_Jukebox
             this.freezeGroup.Controls.Add(this.freezeStartTextBox);
             this.freezeGroup.Controls.Add(this.freezeTrackBar);
             this.freezeGroup.Controls.Add(this.freezeButton);
+            this.freezeGroup.Controls.Add(this.freezePreviewButton);
             this.freezeGroup.Controls.Add(this.freezeTextBox);
             this.freezeGroup.Location = new System.Drawing.Point(12, 50);
             this.freezeGroup.Name = "freezeGroup";
@@ -200,6 +213,7 @@ namespace CS_Jukebox
             this.startGroup.Controls.Add(this.label3);
             this.startGroup.Controls.Add(this.startTrackBar);
             this.startGroup.Controls.Add(this.startButton);
+            this.startGroup.Controls.Add(this.startPreviewButton);
             this.startGroup.Controls.Add(this.startTextBox);
             this.startGroup.Location = new System.Drawing.Point(12, 146);
             this.startGroup.Name = "startGroup";
@@ -253,6 +267,18 @@ namespace CS_Jukebox
             this.startButton.UseVisualStyleBackColor = true;
             this.startButton.Click += new System.EventHandler(this.startButton_Click);
             // 
+            // startPreviewButton
+            // 
+            this.startPreviewButton = new System.Windows.Forms.Button();
+            this.startPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.startPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.startPreviewButton.Name = "startPreviewButton";
+            this.startPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.startPreviewButton.TabIndex = 2;
+            this.startPreviewButton.Text = "▶";
+            this.startPreviewButton.UseVisualStyleBackColor = true;
+            this.startPreviewButton.Click += new System.EventHandler(this.startPreviewButton_Click);
+            // 
             // startTextBox
             // 
             this.startTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -267,6 +293,7 @@ namespace CS_Jukebox
             this.MVPGroup.Controls.Add(this.label7);
             this.MVPGroup.Controls.Add(this.MVPTrackBar);
             this.MVPGroup.Controls.Add(this.MVPButton);
+            this.MVPGroup.Controls.Add(this.MVPPreviewButton);
             this.MVPGroup.Controls.Add(this.MVPTextBox);
             this.MVPGroup.Location = new System.Drawing.Point(253, 241);
             this.MVPGroup.Name = "MVPGroup";
@@ -320,6 +347,18 @@ namespace CS_Jukebox
             this.MVPButton.UseVisualStyleBackColor = true;
             this.MVPButton.Click += new System.EventHandler(this.MVPButton_Click);
             // 
+            // MVPPreviewButton
+            // 
+            this.MVPPreviewButton = new System.Windows.Forms.Button();
+            this.MVPPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.MVPPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.MVPPreviewButton.Name = "MVPPreviewButton";
+            this.MVPPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.MVPPreviewButton.TabIndex = 2;
+            this.MVPPreviewButton.Text = "▶";
+            this.MVPPreviewButton.UseVisualStyleBackColor = true;
+            this.MVPPreviewButton.Click += new System.EventHandler(this.MVPPreviewButton_Click);
+            // 
             // MVPTextBox
             // 
             this.MVPTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -334,6 +373,7 @@ namespace CS_Jukebox
             this.lostGroup.Controls.Add(this.label6);
             this.lostGroup.Controls.Add(this.lostTrackBar);
             this.lostGroup.Controls.Add(this.lostButton);
+            this.lostGroup.Controls.Add(this.lostPreviewButton);
             this.lostGroup.Controls.Add(this.lostTextBox);
             this.lostGroup.Location = new System.Drawing.Point(253, 146);
             this.lostGroup.Name = "lostGroup";
@@ -387,6 +427,18 @@ namespace CS_Jukebox
             this.lostButton.UseVisualStyleBackColor = true;
             this.lostButton.Click += new System.EventHandler(this.lostButton_Click);
             // 
+            // lostPreviewButton
+            // 
+            this.lostPreviewButton = new System.Windows.Forms.Button();
+            this.lostPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lostPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.lostPreviewButton.Name = "lostPreviewButton";
+            this.lostPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.lostPreviewButton.TabIndex = 2;
+            this.lostPreviewButton.Text = "▶";
+            this.lostPreviewButton.UseVisualStyleBackColor = true;
+            this.lostPreviewButton.Click += new System.EventHandler(this.lostPreviewButton_Click);
+            // 
             // lostTextBox
             // 
             this.lostTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -401,6 +453,7 @@ namespace CS_Jukebox
             this.wonGroup.Controls.Add(this.label5);
             this.wonGroup.Controls.Add(this.wonTrackBar);
             this.wonGroup.Controls.Add(this.wonButton);
+            this.wonGroup.Controls.Add(this.wonPreviewButton);
             this.wonGroup.Controls.Add(this.wonTextBox);
             this.wonGroup.Location = new System.Drawing.Point(253, 50);
             this.wonGroup.Name = "wonGroup";
@@ -454,6 +507,18 @@ namespace CS_Jukebox
             this.wonButton.UseVisualStyleBackColor = true;
             this.wonButton.Click += new System.EventHandler(this.wonButton_Click);
             // 
+            // wonPreviewButton
+            // 
+            this.wonPreviewButton = new System.Windows.Forms.Button();
+            this.wonPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.wonPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.wonPreviewButton.Name = "wonPreviewButton";
+            this.wonPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.wonPreviewButton.TabIndex = 2;
+            this.wonPreviewButton.Text = "▶";
+            this.wonPreviewButton.UseVisualStyleBackColor = true;
+            this.wonPreviewButton.Click += new System.EventHandler(this.wonPreviewButton_Click);
+            // 
             // wonTextBox
             // 
             this.wonTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -468,6 +533,7 @@ namespace CS_Jukebox
             this.bombGroup.Controls.Add(this.label4);
             this.bombGroup.Controls.Add(this.bombTrackBar);
             this.bombGroup.Controls.Add(this.bombButton);
+            this.bombGroup.Controls.Add(this.bombPreviewButton);
             this.bombGroup.Controls.Add(this.bombTextBox);
             this.bombGroup.Location = new System.Drawing.Point(12, 241);
             this.bombGroup.Name = "bombGroup";
@@ -520,6 +586,18 @@ namespace CS_Jukebox
             this.bombButton.Text = "Browse";
             this.bombButton.UseVisualStyleBackColor = true;
             this.bombButton.Click += new System.EventHandler(this.bombButton_Click);
+            // 
+            // bombPreviewButton
+            // 
+            this.bombPreviewButton = new System.Windows.Forms.Button();
+            this.bombPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.bombPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.bombPreviewButton.Name = "bombPreviewButton";
+            this.bombPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.bombPreviewButton.TabIndex = 2;
+            this.bombPreviewButton.Text = "▶";
+            this.bombPreviewButton.UseVisualStyleBackColor = true;
+            this.bombPreviewButton.Click += new System.EventHandler(this.bombPreviewButton_Click);
             // 
             // bombTextBox
             // 
@@ -575,6 +653,7 @@ namespace CS_Jukebox
             this.bombTenSecBox1.Controls.Add(this.label8);
             this.bombTenSecBox1.Controls.Add(this.bombTenSecTrackBar);
             this.bombTenSecBox1.Controls.Add(this.bombTenSecButton);
+            this.bombTenSecBox1.Controls.Add(this.bombTenSecPreviewButton);
             this.bombTenSecBox1.Controls.Add(this.bombTenSecTextBox);
             this.bombTenSecBox1.Location = new System.Drawing.Point(12, 337);
             this.bombTenSecBox1.Name = "bombTenSecBox1";
@@ -628,6 +707,18 @@ namespace CS_Jukebox
             this.bombTenSecButton.UseVisualStyleBackColor = true;
             this.bombTenSecButton.Click += new System.EventHandler(this.bombTenSecButton_Click);
             // 
+            // bombTenSecPreviewButton
+            // 
+            this.bombTenSecPreviewButton = new System.Windows.Forms.Button();
+            this.bombTenSecPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.bombTenSecPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.bombTenSecPreviewButton.Name = "bombTenSecPreviewButton";
+            this.bombTenSecPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.bombTenSecPreviewButton.TabIndex = 2;
+            this.bombTenSecPreviewButton.Text = "▶";
+            this.bombTenSecPreviewButton.UseVisualStyleBackColor = true;
+            this.bombTenSecPreviewButton.Click += new System.EventHandler(this.bombTenSecPreviewButton_Click);
+            // 
             // bombTenSecTextBox
             // 
             this.bombTenSecTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -642,6 +733,7 @@ namespace CS_Jukebox
             this.roundTenSecBox.Controls.Add(this.label9);
             this.roundTenSecBox.Controls.Add(this.roundTenSecTrackBar);
             this.roundTenSecBox.Controls.Add(this.roundTenSecButton);
+            this.roundTenSecBox.Controls.Add(this.roundTenSecPreviewButton);
             this.roundTenSecBox.Controls.Add(this.roundTenSecTextBox);
             this.roundTenSecBox.Location = new System.Drawing.Point(253, 337);
             this.roundTenSecBox.Name = "roundTenSecBox";
@@ -695,6 +787,18 @@ namespace CS_Jukebox
             this.roundTenSecButton.UseVisualStyleBackColor = true;
             this.roundTenSecButton.Click += new System.EventHandler(this.roundTenSecButton_Click);
             // 
+            // roundTenSecPreviewButton
+            // 
+            this.roundTenSecPreviewButton = new System.Windows.Forms.Button();
+            this.roundTenSecPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.roundTenSecPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.roundTenSecPreviewButton.Name = "roundTenSecPreviewButton";
+            this.roundTenSecPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.roundTenSecPreviewButton.TabIndex = 2;
+            this.roundTenSecPreviewButton.Text = "▶";
+            this.roundTenSecPreviewButton.UseVisualStyleBackColor = true;
+            this.roundTenSecPreviewButton.Click += new System.EventHandler(this.roundTenSecPreviewButton_Click);
+            // 
             // roundTenSecTextBox
             // 
             this.roundTenSecTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -709,6 +813,7 @@ namespace CS_Jukebox
             this.mainMenuGroupBox.Controls.Add(this.menuStartTextBox);
             this.mainMenuGroupBox.Controls.Add(this.menuTrackBar);
             this.mainMenuGroupBox.Controls.Add(this.menuButton);
+            this.mainMenuGroupBox.Controls.Add(this.menuPreviewButton);
             this.mainMenuGroupBox.Controls.Add(this.menuTextBox);
             this.mainMenuGroupBox.Location = new System.Drawing.Point(134, 433);
             this.mainMenuGroupBox.Name = "mainMenuGroupBox";
@@ -761,6 +866,18 @@ namespace CS_Jukebox
             this.menuButton.Text = "Browse";
             this.menuButton.UseVisualStyleBackColor = true;
             this.menuButton.Click += new System.EventHandler(this.menuButton_Click);
+            // 
+            // menuPreviewButton
+            // 
+            this.menuPreviewButton = new System.Windows.Forms.Button();
+            this.menuPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.menuPreviewButton.Location = new System.Drawing.Point(72, 61);
+            this.menuPreviewButton.Name = "menuPreviewButton";
+            this.menuPreviewButton.Size = new System.Drawing.Size(23, 23);
+            this.menuPreviewButton.TabIndex = 2;
+            this.menuPreviewButton.Text = "▶";
+            this.menuPreviewButton.UseVisualStyleBackColor = true;
+            this.menuPreviewButton.Click += new System.EventHandler(this.menuPreviewButton_Click);
             // 
             // menuTextBox
             // 
@@ -829,6 +946,7 @@ namespace CS_Jukebox
 
         #endregion
         private System.Windows.Forms.Button freezeButton;
+        private System.Windows.Forms.Button freezePreviewButton;
         private System.Windows.Forms.TextBox freezeTextBox;
         private System.Windows.Forms.GroupBox freezeGroup;
         private System.Windows.Forms.TrackBar freezeTrackBar;
@@ -837,22 +955,27 @@ namespace CS_Jukebox
         private System.Windows.Forms.GroupBox startGroup;
         private System.Windows.Forms.TrackBar startTrackBar;
         private System.Windows.Forms.Button startButton;
+        private System.Windows.Forms.Button startPreviewButton;
         private System.Windows.Forms.TextBox startTextBox;
         private System.Windows.Forms.GroupBox bombGroup;
         private System.Windows.Forms.TrackBar bombTrackBar;
         private System.Windows.Forms.Button bombButton;
+        private System.Windows.Forms.Button bombPreviewButton;
         private System.Windows.Forms.TextBox bombTextBox;
         private System.Windows.Forms.GroupBox wonGroup;
         private System.Windows.Forms.TrackBar wonTrackBar;
         private System.Windows.Forms.Button wonButton;
+        private System.Windows.Forms.Button wonPreviewButton;
         private System.Windows.Forms.TextBox wonTextBox;
         private System.Windows.Forms.GroupBox lostGroup;
         private System.Windows.Forms.TrackBar lostTrackBar;
         private System.Windows.Forms.Button lostButton;
+        private System.Windows.Forms.Button lostPreviewButton;
         private System.Windows.Forms.TextBox lostTextBox;
         private System.Windows.Forms.GroupBox MVPGroup;
         private System.Windows.Forms.TrackBar MVPTrackBar;
         private System.Windows.Forms.Button MVPButton;
+        private System.Windows.Forms.Button MVPPreviewButton;
         private System.Windows.Forms.TextBox MVPTextBox;
         private System.Windows.Forms.Button saveButton;
         private System.Windows.Forms.Button cancelButton;
@@ -875,18 +998,21 @@ namespace CS_Jukebox
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TrackBar bombTenSecTrackBar;
         private System.Windows.Forms.Button bombTenSecButton;
+        private System.Windows.Forms.Button bombTenSecPreviewButton;
         private System.Windows.Forms.TextBox bombTenSecTextBox;
         private System.Windows.Forms.GroupBox roundTenSecBox;
         private System.Windows.Forms.TextBox roundTenSecStartBox;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TrackBar roundTenSecTrackBar;
         private System.Windows.Forms.Button roundTenSecButton;
+        private System.Windows.Forms.Button roundTenSecPreviewButton;
         private System.Windows.Forms.TextBox roundTenSecTextBox;
         private System.Windows.Forms.GroupBox mainMenuGroupBox;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox menuStartTextBox;
         private System.Windows.Forms.TrackBar menuTrackBar;
         private System.Windows.Forms.Button menuButton;
+        private System.Windows.Forms.Button menuPreviewButton;
         private System.Windows.Forms.TextBox menuTextBox;
     }
 }
