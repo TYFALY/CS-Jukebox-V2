@@ -59,7 +59,7 @@ namespace CS_Jukebox
             {
                 musicState = MusicState.Menu;
                 playerMVPs = 0;
-                jukebox.PlaySong(Properties.SelectedKit.mainMenuSong, true);
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.mainMenuSong, Properties.SelectedKit.mainMenuSongs), true);
                 Console.WriteLine("Main Menu");
             }
 
@@ -71,7 +71,7 @@ namespace CS_Jukebox
                 }
 
                 musicState = MusicState.FreezeTime;
-                jukebox.PlaySong(Properties.SelectedKit.freezeSong, false);
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.freezeSong, Properties.SelectedKit.freezeSongs), false);
                 currentRoundTime = 0;
                 currentBombTime = 0;
                 Console.WriteLine("FreezeTime Begun");
@@ -92,7 +92,9 @@ namespace CS_Jukebox
             {
                 jukebox.Stop();
                 musicState = MusicState.Live;
-                jukebox.PlaySong(Properties.SelectedKit.startSong, false, 8);
+                // RoundPhase.Live is CS2's "round started" signal. Let the
+                // selected intro play for five seconds, then fade it out.
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.startSong, Properties.SelectedKit.startSongs), false, 5);
                 Console.WriteLine("Round Begun");
 
             }
@@ -112,14 +114,14 @@ namespace CS_Jukebox
                 else
                 {
                     //lose
-                    jukebox.PlaySong(Properties.SelectedKit.loseSong, false);
+                    jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.loseSong, Properties.SelectedKit.loseSongs), false);
                 }
             }
 
             if (gs.Round.Bomb == BombState.Planted && musicState != MusicState.BombPlanted)
             {
                 musicState = MusicState.BombPlanted;
-                jukebox.PlaySong(Properties.SelectedKit.bombSong, false);
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombSong, Properties.SelectedKit.bombSongs), false);
                 Console.WriteLine("Bomb Planted");
             }
         }
@@ -148,12 +150,12 @@ namespace CS_Jukebox
             //Check if player was MVP of the round
             if (gs.Player.MatchStats.MVPs > playerMVPs)
             {
-                jukebox.PlaySong(Properties.SelectedKit.MVPSong, false);
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.MVPSong, Properties.SelectedKit.MVPSongs), false);
                 playerMVPs = gs.Player.MatchStats.MVPs;
             }
             else
             {
-                jukebox.PlaySong(Properties.SelectedKit.winSong, false);
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.winSong, Properties.SelectedKit.winSongs), false);
             }
         }
 
@@ -174,7 +176,7 @@ namespace CS_Jukebox
                 if (roundTime - currentRoundTime == 10)
                 {
                     Console.WriteLine("Ten Seconds left on round");
-                    jukebox.PlaySong(Properties.SelectedKit.roundTenSecSong, false);
+                    jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.roundTenSecSong, Properties.SelectedKit.roundTenSecSongs), false);
                 }
             }
             else if (musicState == MusicState.BombPlanted)
@@ -184,7 +186,7 @@ namespace CS_Jukebox
                 if (bombTime - currentBombTime == 10)
                 {
                     Console.WriteLine("Ten Seconds left on bomb");
-                    jukebox.PlaySong(Properties.SelectedKit.bombTenSecSong, false);
+                    jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false);
                 }
             }
         }

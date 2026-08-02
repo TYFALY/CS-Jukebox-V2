@@ -13,11 +13,8 @@ namespace CS_Jukebox
         private bool isFading = false;
 
         private bool isPlaying = false;
-        private bool shouldStop = false;
         private int timerCount = 0;
         private int timerGoal = 0;
-        private int active = 0;
-        private int delayedCount = 0;
         private float fadeVolume;
         private float volumeIncrement; //Incremental change in volume when fading out song.
 
@@ -30,6 +27,8 @@ namespace CS_Jukebox
 
         public void PlaySong(string path)
         {
+            CancelScheduledStop();
+            CancelFade();
             player.URL = path;
             player.controls.play();
         }
@@ -37,21 +36,23 @@ namespace CS_Jukebox
         //Play song for length or loop indefinitely
         public void PlaySong(SongProfile song, bool loop)
         {
-            if (song.Path == "") return;
+            if (song == null || string.IsNullOrWhiteSpace(song.Path)) return;
 
-            float volume = ((float)Properties.MasterVolume / 100) * (float)song.Volume * active;
+            CancelScheduledStop();
+            CancelFade();
             currentSong = song;
 
-            player.settings.volume = (int)volume;
+            UpdateVolume();
+            player.settings.setMode("loop", loop);
             player.URL = song.Path;
             player.controls.currentPosition = song.Start;
             player.controls.play();
-            player.settings.setMode("loop", loop);
         }
 
         //Play song with a determined amount of time in seconds
         public void PlaySong(SongProfile song, bool loop, int duration)
         {
+            if (song == null || string.IsNullOrWhiteSpace(song.Path)) return;
             PlaySong(song, loop);
 
             timerCount = 0;
@@ -62,20 +63,37 @@ namespace CS_Jukebox
         public void UpdateVolume()
         {
             if (currentSong == null || isFading) return;
-            float volume = ((float)Properties.MasterVolume / 100) * currentSong.Volume * active;
+            float volume = ((float)Properties.MasterVolume / 100) * currentSong.Volume * (IsGameFocused() ? 1 : 0);
             player.settings.volume = (int)volume;
         }
 
-        //Sets shouldStop to true so that on the next on the next timer tick,
-        //StopSong() will be called. The fadeTimer only starts if it is done like this.
+        //Stops the current track with a smooth fade.
         public void Stop()
         {
+            CancelScheduledStop();
             // Start fade immediately instead of deferring to the next tick
             if (!isFading)
             {
                 StopSong();
-                shouldStop = false;
             }
+        }
+
+        private void CancelScheduledStop()
+        {
+            isPlaying = false;
+            timerCount = 0;
+            timerGoal = 0;
+        }
+
+        private void CancelFade()
+        {
+            if (fadeTimer != null)
+            {
+                fadeTimer.Stop();
+                fadeTimer.Tick -= new EventHandler(FadeTimerTick);
+                fadeTimer = null;
+            }
+            isFading = false;
         }
 
         private void StopSong()
@@ -170,36 +188,24 @@ namespace CS_Jukebox
 
         private void TimerTick(object sender, EventArgs e)
         {
-            timerCount += 1;
-
-            if (shouldStop)
+            if (isPlaying && ++timerCount >= timerGoal)
             {
                 StopSong();
-                shouldStop = false;
+                CancelScheduledStop();
             }
 
-            if (isPlaying && timerCount >= timerGoal)
-            {
-                StopSong();
-            }
+            UpdateVolume();
+        }
 
-            //Check if csgo is focused
-            if (WinAPI.GetActiveProcess() == "cs2")
+        private static bool IsGameFocused()
+        {
+            try
             {
-                active = 1;
+                return WinAPI.GetActiveProcess() == "cs2";
             }
-            else
+            catch
             {
-                active = 0;
-            }
-
-            if (delayedCount >= 2)
-            {
-                UpdateVolume();
-            }
-            else
-            {
-                delayedCount++;
+                return false;
             }
         }
     }
