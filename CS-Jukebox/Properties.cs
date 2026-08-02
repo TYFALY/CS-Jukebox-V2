@@ -102,71 +102,25 @@ namespace CS_Jukebox
             return appDir;
         }
 
-        //Copies the config from local folder to CS:GO cfg folder
+        // Copies the config to the exact CS2 GSI directory.
         public static void CreateConfig()
         {
             if (string.IsNullOrWhiteSpace(Properties.GameDir)) return;
 
-            // Normalize config file name (ConfigName has a leading slash in constants)
             string configFileName = Properties.ConfigName.TrimStart('\\', '/');
-
-            // Try common locations for cfg folder
-            string cfgDir = null;
-
-            // Direct cfg inside GameDir
-            string directCfg = Path.Combine(Properties.GameDir, "cfg");
-            if (Directory.Exists(directCfg)) cfgDir = directCfg;
-
-            // Search for a cfg folder inside child directories (first match)
-            if (cfgDir == null)
-            {
-                try
-                {
-                    var matches = Directory.EnumerateDirectories(Properties.GameDir, "cfg", SearchOption.AllDirectories);
-                    cfgDir = matches.FirstOrDefault();
-                }
-                catch (Exception)
-                {
-                    // ignore search errors
-                }
-            }
-
-            // Fallback: if GameDir already ends with csgo or cs2, try GameDir\cfg
-            if (cfgDir == null)
-            {
-                string folderName = Path.GetFileName(Properties.GameDir).ToLowerInvariant();
-                if ((folderName == "csgo" || folderName == "cs2") && Directory.Exists(Path.Combine(Properties.GameDir, "cfg")))
-                {
-                    cfgDir = Path.Combine(Properties.GameDir, "cfg");
-                }
-            }
-
-            // If still not found, as a last resort create cfg under GameDir
-            if (cfgDir == null)
-            {
-                try
-                {
-                    cfgDir = Path.Combine(Properties.GameDir, "cfg");
-                    Directory.CreateDirectory(cfgDir);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Failed to create cfg directory: " + ex.Message);
-                    return;
-                }
-            }
-
+            string cfgDir = GameInstallLocator.GetConfigDirectory(Properties.GameDir);
             string configPath = Path.Combine(cfgDir, configFileName);
             string configSrc = Path.Combine(startDir, configFileName);
 
             try
             {
-                if (File.Exists(configPath))
+                if (!Directory.Exists(cfgDir))
                 {
-                    File.Delete(configPath);
+                    Console.WriteLine("CS2 configuration directory was not found: " + cfgDir);
+                    return;
                 }
 
-                File.Copy(configSrc, configPath);
+                File.Copy(configSrc, configPath, true);
             }
             catch (Exception e)
             {

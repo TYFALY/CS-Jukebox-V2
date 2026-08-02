@@ -31,60 +31,15 @@ namespace CS_Jukebox
             }
         }
 
-        //Check if the directory is a valid CSGO install
+        // Resolves the selected path to CS2's actual game directory. CS2 uses
+        // game\\bin\\win64\\cs2.exe and game\\csgo\\cfg; it does not require
+        // a legacy csgo.exe file.
         private bool CheckDir(string path)
         {
-            if (string.IsNullOrWhiteSpace(path)) return false;
+            if (!GameInstallLocator.TryResolveGameDirectory(path, out string gameDirectory)) return false;
 
-            try
-            {
-                // Direct match (selected folder is the game folder)
-                if (Directory.Exists(Path.Combine(path, "core")))
-                {
-                    Properties.GameDir = path;
-                    return true;
-                }
-
-                // Recursively search inner folders for a directory that contains a 'core' folder
-                foreach (string dir in Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories))
-                {
-                    try
-                    {
-                        if (Directory.Exists(Path.Combine(dir, "core")))
-                        {
-                            Properties.GameDir = dir;
-                            return true;
-                        }
-
-                        // Also accept folders that contain a csgo/cfg or cs2/cfg structure
-                        string folderName = Path.GetFileName(dir).ToLowerInvariant();
-                        if ((folderName == "csgo" || folderName == "cs2") && Directory.Exists(Path.Combine(dir, "cfg")))
-                        {
-                            Properties.GameDir = dir;
-                            return true;
-                        }
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        // Skip folders we don't have access to
-                        continue;
-                    }
-                    catch (PathTooLongException)
-                    {
-                        continue;
-                    }
-                }
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Ignore and return false
-            }
-            catch (PathTooLongException)
-            {
-                // Ignore and return false
-            }
-
-            return false;
+            Properties.GameDir = gameDirectory;
+            return true;
         }
 
         //Saves the directory if it is valid.
@@ -103,7 +58,7 @@ namespace CS_Jukebox
             dirValid = CheckDir(dirTextBox.Text);
             if (dirValid)
             {
-                // CheckDir will set Properties.GameDir to the resolved game folder (could be a child folder)
+                // CheckDir stores the canonical ...\\Counter-Strike...\\game folder.
                 errorLabel.Visible = false;
                 okButton.Enabled = true;
             }

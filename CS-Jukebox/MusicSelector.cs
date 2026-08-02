@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace CS_Jukebox
@@ -17,11 +18,50 @@ namespace CS_Jukebox
             currentKit = newKit;
 
             LoadKitParameters();
+            AddExtraSongsButtons();
         }
 
         private void MusicSelector_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void AddExtraSongsButtons()
+        {
+            AddExtraSongsButton(freezeGroup, "Freeze Time", () => currentKit.freezeSongs, songs => currentKit.freezeSongs = songs);
+            AddExtraSongsButton(startGroup, "Round Start", () => currentKit.startSongs, songs => currentKit.startSongs = songs);
+            AddExtraSongsButton(bombGroup, "Bomb Planted", () => currentKit.bombSongs, songs => currentKit.bombSongs = songs);
+            AddExtraSongsButton(wonGroup, "Round Won", () => currentKit.winSongs, songs => currentKit.winSongs = songs);
+            AddExtraSongsButton(lostGroup, "Round Lost", () => currentKit.loseSongs, songs => currentKit.loseSongs = songs);
+            AddExtraSongsButton(MVPGroup, "MVP", () => currentKit.MVPSongs, songs => currentKit.MVPSongs = songs);
+            AddExtraSongsButton(bombTenSecBox1, "Bomb: 10 seconds", () => currentKit.bombTenSecSongs, songs => currentKit.bombTenSecSongs = songs);
+            AddExtraSongsButton(roundTenSecBox, "Round: 10 seconds", () => currentKit.roundTenSecSongs, songs => currentKit.roundTenSecSongs = songs);
+            AddExtraSongsButton(mainMenuGroupBox, "Main Menu", () => currentKit.mainMenuSongs, songs => currentKit.mainMenuSongs = songs);
+        }
+
+        private void AddExtraSongsButton(GroupBox group, string eventName,
+            Func<List<SongProfile>> getSongs, Action<List<SongProfile>> setSongs)
+        {
+            var button = new Button
+            {
+                Location = new System.Drawing.Point(122, 14),
+                Size = new System.Drawing.Size(107, 23),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+
+            void SetButtonText() => button.Text = $"Extra tracks ({getSongs()?.Count ?? 0})";
+
+            SetButtonText();
+            button.Click += (sender, args) =>
+            {
+                using var editor = new AdditionalSongsForm(eventName, getSongs());
+                if (editor.ShowDialog(this) == DialogResult.OK)
+                {
+                    setSongs(editor.Songs);
+                    SetButtonText();
+                }
+            };
+            group.Controls.Add(button);
         }
 
         //Loads parameters into controls such as textboxes and trackbars

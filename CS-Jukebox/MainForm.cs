@@ -16,6 +16,7 @@ namespace CS_Jukebox
         public MainForm()
         {
             InitializeComponent();
+            trackBar1.ValueChanged += trackBar1_ValueChanged;
             //AllocConsole(); //Enable console
             MaximizeBox = false;
 
@@ -91,8 +92,18 @@ namespace CS_Jukebox
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
+            SetMasterVolume();
+        }
+
+        private void trackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            SetMasterVolume();
+        }
+
+        private void SetMasterVolume()
+        {
             Properties.MasterVolume = trackBar1.Value;
-            logic.jukebox.UpdateVolume();
+            logic?.jukebox.UpdateVolume();
         }
 
         private void addButton_Click(object sender, EventArgs e)
