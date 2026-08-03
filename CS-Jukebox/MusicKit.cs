@@ -20,6 +20,7 @@ namespace CS_Jukebox
         public SongProfile bombTenSecSong { get; set; }
         public SongProfile roundTenSecSong { get; set; }
         public SongProfile mainMenuSong { get; set; }
+        public SongProfile deathSong { get; set; }
 
         // Optional extra tracks. The singular properties above remain the
         // primary tracks, keeping existing kit JSON files compatible.
@@ -32,6 +33,7 @@ namespace CS_Jukebox
         public List<SongProfile> bombTenSecSongs { get; set; }
         public List<SongProfile> roundTenSecSongs { get; set; }
         public List<SongProfile> mainMenuSongs { get; set; }
+        public List<SongProfile> deathSongs { get; set; }
 
         public MusicKit(string name)
         {
@@ -46,6 +48,7 @@ namespace CS_Jukebox
             bombTenSecSong = new SongProfile();
             roundTenSecSong = new SongProfile();
             mainMenuSong = new SongProfile();
+            deathSong = new SongProfile();
 
             freezeSongs = new List<SongProfile>();
             startSongs = new List<SongProfile>();
@@ -56,6 +59,90 @@ namespace CS_Jukebox
             bombTenSecSongs = new List<SongProfile>();
             roundTenSecSongs = new List<SongProfile>();
             mainMenuSongs = new List<SongProfile>();
+            deathSongs = new List<SongProfile>();
+        }
+
+        public void EnsureInitialized()
+        {
+            freezeSong ??= new SongProfile();
+            startSong ??= new SongProfile();
+            bombSong ??= new SongProfile();
+            winSong ??= new SongProfile();
+            loseSong ??= new SongProfile();
+            MVPSong ??= new SongProfile();
+            bombTenSecSong ??= new SongProfile();
+            roundTenSecSong ??= new SongProfile();
+            mainMenuSong ??= new SongProfile();
+            deathSong ??= new SongProfile();
+
+            freezeSongs ??= new List<SongProfile>();
+            startSongs ??= new List<SongProfile>();
+            bombSongs ??= new List<SongProfile>();
+            winSongs ??= new List<SongProfile>();
+            loseSongs ??= new List<SongProfile>();
+            MVPSongs ??= new List<SongProfile>();
+            bombTenSecSongs ??= new List<SongProfile>();
+            roundTenSecSongs ??= new List<SongProfile>();
+            mainMenuSongs ??= new List<SongProfile>();
+            deathSongs ??= new List<SongProfile>();
+
+            foreach (SongProfile song in GetAllSongs())
+                song?.EnsureValid();
+        }
+
+        public MusicKit DeepClone()
+        {
+            EnsureInitialized();
+            return new MusicKit(Name)
+            {
+                freezeSong = freezeSong.Clone(),
+                startSong = startSong.Clone(),
+                bombSong = bombSong.Clone(),
+                winSong = winSong.Clone(),
+                loseSong = loseSong.Clone(),
+                MVPSong = MVPSong.Clone(),
+                bombTenSecSong = bombTenSecSong.Clone(),
+                roundTenSecSong = roundTenSecSong.Clone(),
+                mainMenuSong = mainMenuSong.Clone(),
+                deathSong = deathSong.Clone(),
+                freezeSongs = CloneSongs(freezeSongs),
+                startSongs = CloneSongs(startSongs),
+                bombSongs = CloneSongs(bombSongs),
+                winSongs = CloneSongs(winSongs),
+                loseSongs = CloneSongs(loseSongs),
+                MVPSongs = CloneSongs(MVPSongs),
+                bombTenSecSongs = CloneSongs(bombTenSecSongs),
+                roundTenSecSongs = CloneSongs(roundTenSecSongs),
+                mainMenuSongs = CloneSongs(mainMenuSongs),
+                deathSongs = CloneSongs(deathSongs)
+            };
+        }
+
+        private IEnumerable<SongProfile> GetAllSongs()
+        {
+            yield return freezeSong;
+            yield return startSong;
+            yield return bombSong;
+            yield return winSong;
+            yield return loseSong;
+            yield return MVPSong;
+            yield return bombTenSecSong;
+            yield return roundTenSecSong;
+            yield return mainMenuSong;
+            yield return deathSong;
+
+            foreach (SongProfile song in freezeSongs.Concat(startSongs).Concat(bombSongs).Concat(winSongs)
+                .Concat(loseSongs).Concat(MVPSongs).Concat(bombTenSecSongs).Concat(roundTenSecSongs)
+                .Concat(mainMenuSongs).Concat(deathSongs))
+            {
+                yield return song;
+            }
+        }
+
+        private static List<SongProfile> CloneSongs(IEnumerable<SongProfile> songs)
+        {
+            return songs?.Where(song => song != null).Select(song => song.Clone()).ToList()
+                ?? new List<SongProfile>();
         }
 
         public SongProfile PickSong(SongProfile primarySong, List<SongProfile> extraSongs)

@@ -13,9 +13,12 @@ namespace CS_Jukebox
         private readonly ListBox songsList = new ListBox();
         private readonly TextBox pathTextBox = new TextBox();
         private readonly TrackBar volumeTrackBar = new TrackBar();
-        private readonly NumericUpDown startNumeric = new NumericUpDown();
+        private readonly TextBox startMinutesTextBox = new TextBox();
+        private readonly TextBox startSecondsTextBox = new TextBox();
+        private readonly Jukebox previewJukebox = new Jukebox();
         private int selectedIndex = -1;
         private bool refreshingSongList;
+        private SongProfile previewSong;
 
         public List<SongProfile> Songs => songs;
 
@@ -23,10 +26,10 @@ namespace CS_Jukebox
         {
             songs = currentSongs?
                 .Where(song => song != null)
-                .Select(song => new SongProfile(song.Path, song.Volume) { Start = song.Start })
+                .Select(song => new SongProfile(song.Path, song.Volume) { Start = song.Start, NormalizationGain = song.NormalizationGain })
                 .ToList() ?? new List<SongProfile>();
 
-            Text = eventName + " — extra tracks";
+            Text = eventName + " - Extra tracks";
             Width = 580;
             Height = 330;
             MinimizeBox = false;
@@ -35,6 +38,7 @@ namespace CS_Jukebox
 
             BuildControls();
             RefreshSongList();
+            FormClosed += (sender, args) => previewJukebox.Dispose();
         }
 
         private void BuildControls()
@@ -48,8 +52,10 @@ namespace CS_Jukebox
             removeButton.Click += (sender, args) => RemoveSong();
 
             var pathLabel = new Label { Text = "Audio file:", Left = 240, Top = 18, AutoSize = true };
-            pathTextBox.SetBounds(240, 40, 230, 23);
-            var browseButton = new Button { Text = "Browse…", Left = 478, Top = 39, Width = 78 };
+            pathTextBox.SetBounds(240, 40, 180, 23);
+            var previewButton = new Button { Text = "▶", Left = 428, Top = 39, Width = 30, Height = 28 };
+            previewButton.Click += (sender, args) => TogglePreview(previewButton);
+            var browseButton = new Button { Text = "Browse...", Left = 478, Top = 39, Width = 78 };
             browseButton.Click += (sender, args) => BrowseForSong();
 
             var volumeLabel = new Label { Text = "Volume:", Left = 240, Top = 80, AutoSize = true };
@@ -59,10 +65,17 @@ namespace CS_Jukebox
             volumeTrackBar.TickStyle = TickStyle.None;
             volumeTrackBar.Value = 100;
 
-            var startLabel = new Label { Text = "Start at (seconds):", Left = 240, Top = 145, AutoSize = true };
-            startNumeric.SetBounds(240, 167, 100, 23);
-            startNumeric.Minimum = 0;
-            startNumeric.Maximum = 36000;
+            var startLabel = new Label { Text = "Start At:", Left = 240, Top = 145, AutoSize = true };
+            startMinutesTextBox.SetBounds(240, 167, 55, 23);
+            startMinutesTextBox.Text = "0";
+            startMinutesTextBox.TextAlign = HorizontalAlignment.Center;
+            startMinutesTextBox.KeyPress += IntegerTextBox_KeyPress;
+            var minutesLabel = new Label { Text = "min", Left = 299, Top = 171, AutoSize = true };
+            startSecondsTextBox.SetBounds(330, 167, 55, 23);
+            startSecondsTextBox.Text = "0";
+            startSecondsTextBox.TextAlign = HorizontalAlignment.Center;
+            startSecondsTextBox.KeyPress += IntegerTextBox_KeyPress;
+            var secondsLabel = new Label { Text = "sec", Left = 389, Top = 171, AutoSize = true };
 
             var saveButton = new Button { Text = "Save", Left = 396, Top = 250, Width = 75, DialogResult = DialogResult.OK };
             saveButton.Click += (sender, args) => StoreCurrentSong();
@@ -70,8 +83,9 @@ namespace CS_Jukebox
 
             AcceptButton = saveButton;
             CancelButton = cancelButton;
-            Controls.AddRange(new Control[] { songsList, addButton, removeButton, pathLabel, pathTextBox,
-                browseButton, volumeLabel, volumeTrackBar, startLabel, startNumeric, saveButton, cancelButton });
+            Controls.AddRange(new Control[] { songsList, addButton, removeButton, pathLabel, pathTextBox, previewButton,
+                browseButton, volumeLabel, volumeTrackBar, startLabel, startMinutesTextBox, minutesLabel,
+                startSecondsTextBox, secondsLabel, saveButton, cancelButton });
         }
 
         private void RefreshSongList()
@@ -111,7 +125,9 @@ namespace CS_Jukebox
             var song = songs[selectedIndex];
             pathTextBox.Text = song.Path;
             volumeTrackBar.Value = Math.Clamp(song.Volume, volumeTrackBar.Minimum, volumeTrackBar.Maximum);
-            startNumeric.Value = Math.Clamp(song.Start, (int)startNumeric.Minimum, (int)startNumeric.Maximum);
+            int start = Math.Max(song.Start, 0);
+            startMinutesTextBox.Text = Math.Min(999, start / 60).ToString();
+            startSecondsTextBox.Text = (start % 60).ToString();
         }
 
         private void StoreCurrentSong()
@@ -119,14 +135,60 @@ namespace CS_Jukebox
             if (selectedIndex < 0 || selectedIndex >= songs.Count) return;
             songs[selectedIndex].Path = pathTextBox.Text;
             songs[selectedIndex].Volume = volumeTrackBar.Value;
-            songs[selectedIndex].Start = (int)startNumeric.Value;
+            songs[selectedIndex].Start = (GetTimeValue(startMinutesTextBox, 999) * 60) + GetTimeValue(startSecondsTextBox, 59);
         }
 
         private void ClearEditor()
         {
             pathTextBox.Clear();
             volumeTrackBar.Value = 100;
-            startNumeric.Value = 0;
+            startMinutesTextBox.Text = "0";
+            startSecondsTextBox.Text = "0";
+        }
+
+        private void TogglePreview(Button previewButton)
+        {
+            if (string.IsNullOrWhiteSpace(pathTextBox.Text))
+            {
+                MessageBox.Show("No file selected to preview.", "Preview", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                var song = new SongProfile(pathTextBox.Text, volumeTrackBar.Value)
+                {
+                    Start = (GetTimeValue(startMinutesTextBox, 999) * 60) + GetTimeValue(startSecondsTextBox, 59)
+                };
+
+                if (previewSong != null && previewSong.Path == song.Path && previewSong.Volume == song.Volume &&
+                    previewSong.Start == song.Start && previewJukebox.IsPlaybackActive())
+                {
+                    previewJukebox.Stop();
+                    previewSong = null;
+                    previewButton.Text = "▶";
+                    return;
+                }
+
+                previewJukebox.PlayPreviewSong(song);
+                previewSong = song;
+                previewButton.Text = "■";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to preview file: " + ex.Message, "Preview error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static int GetTimeValue(TextBox textBox, int maximum)
+        {
+            return int.TryParse(textBox.Text, out int value) ? Math.Clamp(value, 0, maximum) : 0;
+        }
+
+        private void IntegerTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
         }
 
         private void BrowseForSong()

@@ -75,23 +75,35 @@ namespace CS_Jukebox
 
         private void CheckAutoStart()
         {
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey
-                    ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            bool autoStart = registryKey.GetValue("CS-Jukebox") != null;
-            autoCheckBox.Checked = autoStart;
+            try
+            {
+                using RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(
+                    "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", false);
+                autoCheckBox.Checked = registryKey?.GetValue("CS-Jukebox") != null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to read autostart settings: " + e.Message);
+                autoCheckBox.Checked = false;
+            }
         }
 
         private void RegisterInStartup(bool isChecked)
         {
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey
-                    ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            if (isChecked)
+            try
             {
-                registryKey.SetValue("CS-Jukebox", Application.ExecutablePath);
+                using RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(
+                    "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                if (registryKey == null) return;
+
+                if (isChecked)
+                    registryKey.SetValue("CS-Jukebox", "\"" + Application.ExecutablePath + "\"");
+                else
+                    registryKey.DeleteValue("CS-Jukebox", false);
             }
-            else
+            catch (Exception e)
             {
-                registryKey.DeleteValue("CS-Jukebox");
+                Console.WriteLine("Failed to update autostart settings: " + e.Message);
             }
         }
 
@@ -207,14 +219,18 @@ namespace CS_Jukebox
 
                 var importedKit = JsonConvert.DeserializeObject<MusicKit>(File.ReadAllText(kitJson));
                 if (importedKit == null) throw new InvalidDataException("Failed to deserialize kit JSON.");
+                importedKit.EnsureInitialized();
 
                 // Determine app kits directory
-                string appDir = Path.GetDirectoryName(Application.ExecutablePath);
-                string kitsDir = Path.Combine(appDir, Properties.MusicKitsPath);
+                string kitsDir = Properties.KitsDirectory;
                 Directory.CreateDirectory(kitsDir);
 
                 // Ensure unique kit name if collision
-                string baseName = importedKit.Name ?? "ImportedKit";
+                if (Properties.MusicKits == null) Properties.MusicKits = new List<MusicKit>();
+
+                string baseName = ToSafeKitName(importedKit.Name);
+                if (!Properties.TryValidateKitName(baseName, null, out _))
+                    baseName = "ImportedKit";
                 string finalName = baseName;
                 int suffix = 1;
                 while (Properties.MusicKits.Any(k => string.Equals(k.Name, finalName, StringComparison.OrdinalIgnoreCase)))
@@ -232,16 +248,7 @@ namespace CS_Jukebox
                 {
                     if (p == null || string.IsNullOrWhiteSpace(p.Path)) continue;
 
-                    string relative = p.Path.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
-                    string srcPath = Path.Combine(tempDir, relative);
-                    if (!File.Exists(srcPath))
-                    {
-                        // Try if path was stored without audio/ prefix
-                        string alt = Path.Combine(tempDir, Path.GetFileName(relative));
-                        if (File.Exists(alt)) srcPath = alt;
-                    }
-
-                    if (File.Exists(srcPath))
+                    if (TryResolveArchiveAudioPath(tempDir, p.Path, out string srcPath) && File.Exists(srcPath))
                     {
                         string destName = Path.GetFileName(srcPath);
                         string destPath = Path.Combine(audioDest, destName);
@@ -267,7 +274,6 @@ namespace CS_Jukebox
                 File.WriteAllText(kitFilePath, JsonConvert.SerializeObject(importedKit, Formatting.Indented));
 
                 // Register in memory
-                if (Properties.MusicKits == null) Properties.MusicKits = new List<MusicKit>();
                 Properties.MusicKits.Add(importedKit);
                 Properties.SelectedKit = importedKit;
 
@@ -294,6 +300,7 @@ namespace CS_Jukebox
             yield return kit.bombTenSecSong;
             yield return kit.roundTenSecSong;
             yield return kit.mainMenuSong;
+            yield return kit.deathSong;
 
             if (kit.freezeSongs != null) foreach (var s in kit.freezeSongs) yield return s;
             if (kit.startSongs != null) foreach (var s in kit.startSongs) yield return s;
@@ -304,6 +311,31 @@ namespace CS_Jukebox
             if (kit.bombTenSecSongs != null) foreach (var s in kit.bombTenSecSongs) yield return s;
             if (kit.roundTenSecSongs != null) foreach (var s in kit.roundTenSecSongs) yield return s;
             if (kit.mainMenuSongs != null) foreach (var s in kit.mainMenuSongs) yield return s;
+            if (kit.deathSongs != null) foreach (var s in kit.deathSongs) yield return s;
+        }
+
+        private static string ToSafeKitName(string name)
+        {
+            string safeName = Path.GetFileName(name?.Trim() ?? "");
+            foreach (char invalid in Path.GetInvalidFileNameChars())
+                safeName = safeName.Replace(invalid, '_');
+
+            safeName = safeName.Trim().Trim('.');
+            return string.IsNullOrWhiteSpace(safeName) ? "ImportedKit" : safeName;
+        }
+
+        private static bool TryResolveArchiveAudioPath(string archiveRoot, string storedPath, out string sourcePath)
+        {
+            sourcePath = null;
+            if (string.IsNullOrWhiteSpace(storedPath) || Path.IsPathRooted(storedPath)) return false;
+
+            string relative = storedPath.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
+            string audioRoot = Path.GetFullPath(Path.Combine(archiveRoot, "audio")) + Path.DirectorySeparatorChar;
+            string candidate = Path.GetFullPath(Path.Combine(archiveRoot, relative));
+            if (!candidate.StartsWith(audioRoot, StringComparison.OrdinalIgnoreCase)) return false;
+
+            sourcePath = candidate;
+            return true;
         }
 
         private void addButton_Click(object sender, EventArgs e)
@@ -327,12 +359,14 @@ namespace CS_Jukebox
 
         private void musicComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Properties.SelectedKit = Properties.MusicKits[musicComboBox.SelectedIndex];
+            int index = musicComboBox.SelectedIndex;
+            if (index >= 0 && index < Properties.MusicKits.Count)
+                Properties.SelectedKit = Properties.MusicKits[index];
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            logic.Stop();
+            logic?.Dispose();
             Properties.Save();
         }
 
@@ -341,6 +375,7 @@ namespace CS_Jukebox
             Form dirPopup = new GamePathForm();
             dirPopup.Location = this.Location;
             dirPopup.ShowDialog(this);
+            Properties.CreateConfig();
             RefreshParameters();
         }
 

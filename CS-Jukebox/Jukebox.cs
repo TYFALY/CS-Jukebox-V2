@@ -1,21 +1,24 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using WMPLib;
 
 namespace CS_Jukebox
 {
-    public class Jukebox
+    public class Jukebox : IDisposable
     {
         private WindowsMediaPlayer player;
         private SongProfile currentSong;
 
         private Timer fadeTimer;
+        private Timer songTimer;
         private bool isFading = false;
+        private bool previewMode;
 
         private bool isPlaying = false;
-        private int timerCount = 0;
-        private int timerGoal = 0;
+        private long scheduledStopAtMilliseconds;
         private float fadeVolume;
         private float volumeIncrement; //Incremental change in volume when fading out song.
 
@@ -28,10 +31,7 @@ namespace CS_Jukebox
 
         public void PlaySong(string path)
         {
-            CancelScheduledStop();
-            CancelFade();
-            player.URL = path;
-            player.controls.play();
+            PlayPreviewSong(new SongProfile(path, 100));
         }
 
         //Play song for length or loop indefinitely
@@ -41,27 +41,10 @@ namespace CS_Jukebox
 
             CancelScheduledStop();
             CancelFade();
+            previewMode = false;
             currentSong = song;
 
-            // Calculate normalization gain on first play if not computed
-            try
-            {
-                if (currentSong.NormalizationGain <= 0f)
-                {
-                    if (File.Exists(currentSong.Path))
-                    {
-                        currentSong.NormalizationGain = AudioUtils.CalculateNormalizationGain(currentSong.Path);
-                    }
-                    else
-                    {
-                        currentSong.NormalizationGain = 1f;
-                    }
-                }
-            }
-            catch
-            {
-                currentSong.NormalizationGain = 1f;
-            }
+            BeginNormalization(currentSong);
 
             UpdateVolume();
             player.settings.setMode("loop", loop);
@@ -70,14 +53,43 @@ namespace CS_Jukebox
             player.controls.play();
         }
 
+        public void PlayPreviewSong(SongProfile song)
+        {
+            if (song == null || string.IsNullOrWhiteSpace(song.Path)) return;
+
+            CancelScheduledStop();
+            CancelFade();
+            previewMode = true;
+            currentSong = song;
+            BeginNormalization(currentSong);
+            player.settings.setMode("loop", false);
+            UpdateVolume();
+            player.URL = song.Path;
+            player.controls.currentPosition = song.Start;
+            player.controls.play();
+        }
+
+        public bool IsPlaybackActive()
+        {
+            try
+            {
+                return player.playState == WMPPlayState.wmppsPlaying ||
+                       player.playState == WMPPlayState.wmppsBuffering ||
+                       player.playState == WMPPlayState.wmppsTransitioning;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         //Play song with a determined amount of time in seconds
         public void PlaySong(SongProfile song, bool loop, int duration)
         {
             if (song == null || string.IsNullOrWhiteSpace(song.Path)) return;
             PlaySong(song, loop);
 
-            timerCount = 0;
-            timerGoal = duration;
+            scheduledStopAtMilliseconds = Environment.TickCount64 + Math.Max(duration, 0) * 1000L;
             isPlaying = true;
         }
 
@@ -88,7 +100,7 @@ namespace CS_Jukebox
             // Properties.MasterVolume = 0..100, currentSong.Volume = 0..100
             float master = (float)Properties.MasterVolume / 100f;
             float songVol = (float)currentSong.Volume / 100f;
-            float focus = IsGameFocused() ? 1f : 0f;
+            float focus = previewMode || IsGameFocused() ? 1f : 0f;
 
             float norm = (currentSong.NormalizationGain > 0f) ? currentSong.NormalizationGain : 1f;
 
@@ -111,8 +123,7 @@ namespace CS_Jukebox
         private void CancelScheduledStop()
         {
             isPlaying = false;
-            timerCount = 0;
-            timerGoal = 0;
+            scheduledStopAtMilliseconds = 0;
         }
 
         private void CancelFade()
@@ -210,15 +221,15 @@ namespace CS_Jukebox
 
         private void SetupTimer()
         {
-            Timer songTimer = new Timer();
-            songTimer.Interval = 1000;
+            songTimer = new Timer();
+            songTimer.Interval = 100;
             songTimer.Tick += new EventHandler(TimerTick);
             songTimer.Start();
         }
 
         private void TimerTick(object sender, EventArgs e)
         {
-            if (isPlaying && ++timerCount >= timerGoal)
+            if (isPlaying && Environment.TickCount64 >= scheduledStopAtMilliseconds)
             {
                 StopSong();
                 CancelScheduledStop();
@@ -237,6 +248,44 @@ namespace CS_Jukebox
             {
                 return false;
             }
+        }
+
+        public void StopImmediately()
+        {
+            CancelScheduledStop();
+            CancelFade();
+            try { player.controls.stop(); } catch { }
+            try { player.settings.volume = 0; } catch { }
+        }
+
+        private static void BeginNormalization(SongProfile song)
+        {
+            if (song.NormalizationGain > 0f) return;
+
+            // Decoding audio must not block a game-state callback. Playback
+            // starts at its original level, then uses the cached result.
+            song.NormalizationGain = 1f;
+            string path = song.Path;
+            _ = Task.Run(() => AudioUtils.CalculateNormalizationGain(path))
+                .ContinueWith(task =>
+                {
+                    if (task.Status == TaskStatus.RanToCompletion)
+                        song.NormalizationGain = task.Result;
+                });
+        }
+
+        public void Dispose()
+        {
+            StopImmediately();
+            songTimer?.Stop();
+            songTimer?.Dispose();
+            fadeTimer?.Dispose();
+            try { player.close(); } catch { }
+            if (player != null && Marshal.IsComObject(player))
+            {
+                try { Marshal.FinalReleaseComObject(player); } catch { }
+            }
+            player = null;
         }
     }
 }

@@ -21,9 +21,10 @@ namespace CSGSI
     /// </summary>
     public class GameStateListener : IGameStateListener
     {
-        private AutoResetEvent _waitForConnection = new AutoResetEvent(false);
+        private const long MaximumRequestSize = 1024 * 1024;
         private GameState _currentGameState;
         private HttpListener _listener;
+        private Thread _listenerThread;
 
         /// <summary>
         /// The most recently received GameState.
@@ -101,7 +102,6 @@ namespace CSGSI
 
             _listener = new HttpListener();
             _listener.Prefixes.Add("http://localhost:" + Port + "/");
-            Thread ListenerThread = new Thread(new ThreadStart(Run));
             try
             {
                 _listener.Start();
@@ -111,7 +111,12 @@ namespace CSGSI
                 return false;
             }
             Running = true;
-            ListenerThread.Start();
+            _listenerThread = new Thread(Run)
+            {
+                IsBackground = true,
+                Name = "CSGSI listener"
+            };
+            _listenerThread.Start();
             return true;
         }
 
@@ -120,65 +125,93 @@ namespace CSGSI
         /// </summary>
         public void Stop()
         {
+            if (!Running && _listener == null)
+                return;
+
             Running = false;
-            _listener.Close();
-            (_listener as IDisposable).Dispose();
+            try { _listener?.Close(); } catch (ObjectDisposedException) { }
+
+            if (_listenerThread != null && _listenerThread != Thread.CurrentThread)
+                _listenerThread.Join(1000);
+
+            _listener = null;
+            _listenerThread = null;
         }
 
         private void Run()
         {
             while (Running)
             {
-                _listener.BeginGetContext(ReceiveGameState, _listener);
-                _waitForConnection.WaitOne();
-                _waitForConnection.Reset();
+                HttpListenerContext context;
+                try
+                {
+                    context = _listener.GetContext();
+                }
+                catch (ObjectDisposedException) { break; }
+                catch (HttpListenerException) when (!Running) { break; }
+                catch (HttpListenerException) { continue; }
+
+                ProcessRequest(context);
             }
-            try
-            {
-                _listener.Stop();
-            }
-            catch (ObjectDisposedException)
-            { /* _listener was already disposed, do nothing */ }
         }
 
-        private void ReceiveGameState(IAsyncResult result)
+        private void ProcessRequest(HttpListenerContext context)
         {
-            HttpListenerContext context;
+            HttpStatusCode status = HttpStatusCode.OK;
+
             try
             {
-                context = _listener.EndGetContext(result);
+                HttpListenerRequest request = context.Request;
+                if (!string.Equals(request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+                {
+                    status = HttpStatusCode.MethodNotAllowed;
+                    return;
+                }
+
+                if (request.ContentLength64 > MaximumRequestSize)
+                {
+                    status = HttpStatusCode.RequestEntityTooLarge;
+                    return;
+                }
+
+                string json;
+                using (StreamReader reader = new StreamReader(request.InputStream))
+                {
+                    char[] buffer = new char[8192];
+                    int total = 0;
+                    int read;
+                    using (StringWriter writer = new StringWriter())
+                    {
+                        while ((read = reader.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            total += read;
+                            if (total > MaximumRequestSize)
+                            {
+                                status = HttpStatusCode.RequestEntityTooLarge;
+                                return;
+                            }
+                            writer.Write(buffer, 0, read);
+                        }
+                        json = writer.ToString();
+                    }
+                }
+
+                CurrentGameState = new GameState(json);
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // Listener was Closed due to call of Stop();
-                return;
-            }
-            catch (HttpListenerException)
-            {
-                return;
+                status = HttpStatusCode.BadRequest;
             }
             finally
             {
-                _waitForConnection.Set();
-            }
-
-            HttpListenerRequest request = context.Request;
-            string JSON;
-
-            using (Stream inputStream = request.InputStream)
-            {
-                using (StreamReader sr = new StreamReader(inputStream))
+                try
                 {
-                    JSON = sr.ReadToEnd();
+                    context.Response.StatusCode = (int)status;
+                    context.Response.Close();
                 }
+                catch (ObjectDisposedException) { }
+                catch (HttpListenerException) { }
             }
-            using (HttpListenerResponse response = context.Response)
-            {
-                response.StatusCode = (int)HttpStatusCode.OK;
-                response.StatusDescription = "OK";
-                response.Close();
-            }
-            CurrentGameState = new GameState(JSON);
         }
 
         #region Intricate Events

@@ -30,917 +30,976 @@ namespace CS_Jukebox
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MusicSelector));
-            this.freezeButton = new System.Windows.Forms.Button();
-            this.freezeTextBox = new System.Windows.Forms.TextBox();
-            this.freezeGroup = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.freezeStartTextBox = new System.Windows.Forms.TextBox();
-            this.freezeTrackBar = new System.Windows.Forms.TrackBar();
-            this.label2 = new System.Windows.Forms.Label();
-            this.nameTextBox = new System.Windows.Forms.TextBox();
-            this.startGroup = new System.Windows.Forms.GroupBox();
-            this.startStartTextBox = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.startTrackBar = new System.Windows.Forms.TrackBar();
-            this.startButton = new System.Windows.Forms.Button();
-            this.startTextBox = new System.Windows.Forms.TextBox();
-            this.MVPGroup = new System.Windows.Forms.GroupBox();
-            this.MVPStartTextBox = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.MVPTrackBar = new System.Windows.Forms.TrackBar();
-            this.MVPButton = new System.Windows.Forms.Button();
-            this.MVPTextBox = new System.Windows.Forms.TextBox();
-            this.lostGroup = new System.Windows.Forms.GroupBox();
-            this.lostStartTextBox = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.lostTrackBar = new System.Windows.Forms.TrackBar();
-            this.lostButton = new System.Windows.Forms.Button();
-            this.lostTextBox = new System.Windows.Forms.TextBox();
-            this.wonGroup = new System.Windows.Forms.GroupBox();
-            this.wonStartTextBox = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.wonTrackBar = new System.Windows.Forms.TrackBar();
-            this.wonButton = new System.Windows.Forms.Button();
-            this.wonTextBox = new System.Windows.Forms.TextBox();
-            this.bombGroup = new System.Windows.Forms.GroupBox();
-            this.bombStartTextBox = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.bombTrackBar = new System.Windows.Forms.TrackBar();
-            this.bombButton = new System.Windows.Forms.Button();
-            this.bombTextBox = new System.Windows.Forms.TextBox();
-            this.saveButton = new System.Windows.Forms.Button();
-            this.cancelButton = new System.Windows.Forms.Button();
-            this.deleteButton = new System.Windows.Forms.Button();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.bombTenSecBox1 = new System.Windows.Forms.GroupBox();
-            this.bombTenSecStartBox = new System.Windows.Forms.TextBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.bombTenSecTrackBar = new System.Windows.Forms.TrackBar();
-            this.bombTenSecButton = new System.Windows.Forms.Button();
-            this.bombTenSecTextBox = new System.Windows.Forms.TextBox();
-            this.roundTenSecBox = new System.Windows.Forms.GroupBox();
-            this.roundTenSecStartBox = new System.Windows.Forms.TextBox();
-            this.label9 = new System.Windows.Forms.Label();
-            this.roundTenSecTrackBar = new System.Windows.Forms.TrackBar();
-            this.roundTenSecButton = new System.Windows.Forms.Button();
-            this.roundTenSecTextBox = new System.Windows.Forms.TextBox();
-            this.mainMenuGroupBox = new System.Windows.Forms.GroupBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.menuStartTextBox = new System.Windows.Forms.TextBox();
-            this.menuTrackBar = new System.Windows.Forms.TrackBar();
-            this.menuButton = new System.Windows.Forms.Button();
-            this.menuTextBox = new System.Windows.Forms.TextBox();
-            this.freezeGroup.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.freezeTrackBar)).BeginInit();
-            this.startGroup.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.startTrackBar)).BeginInit();
-            this.MVPGroup.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MVPTrackBar)).BeginInit();
-            this.lostGroup.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.lostTrackBar)).BeginInit();
-            this.wonGroup.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.wonTrackBar)).BeginInit();
-            this.bombGroup.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bombTrackBar)).BeginInit();
-            this.bombTenSecBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bombTenSecTrackBar)).BeginInit();
-            this.roundTenSecBox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.roundTenSecTrackBar)).BeginInit();
-            this.mainMenuGroupBox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.menuTrackBar)).BeginInit();
-            this.SuspendLayout();
-            // 
+            freezeButton = new System.Windows.Forms.Button();
+            freezeTextBox = new System.Windows.Forms.TextBox();
+            freezeGroup = new System.Windows.Forms.GroupBox();
+            label1 = new System.Windows.Forms.Label();
+            freezeStartTextBox = new System.Windows.Forms.TextBox();
+            freezeTrackBar = new System.Windows.Forms.TrackBar();
+            freezePreviewButton = new System.Windows.Forms.Button();
+            label2 = new System.Windows.Forms.Label();
+            nameTextBox = new System.Windows.Forms.TextBox();
+            startGroup = new System.Windows.Forms.GroupBox();
+            startStartTextBox = new System.Windows.Forms.TextBox();
+            label3 = new System.Windows.Forms.Label();
+            startTrackBar = new System.Windows.Forms.TrackBar();
+            startButton = new System.Windows.Forms.Button();
+            startPreviewButton = new System.Windows.Forms.Button();
+            startTextBox = new System.Windows.Forms.TextBox();
+            MVPGroup = new System.Windows.Forms.GroupBox();
+            MVPStartTextBox = new System.Windows.Forms.TextBox();
+            label7 = new System.Windows.Forms.Label();
+            MVPTrackBar = new System.Windows.Forms.TrackBar();
+            MVPButton = new System.Windows.Forms.Button();
+            MVPPreviewButton = new System.Windows.Forms.Button();
+            MVPTextBox = new System.Windows.Forms.TextBox();
+            lostGroup = new System.Windows.Forms.GroupBox();
+            lostStartTextBox = new System.Windows.Forms.TextBox();
+            label6 = new System.Windows.Forms.Label();
+            lostTrackBar = new System.Windows.Forms.TrackBar();
+            lostButton = new System.Windows.Forms.Button();
+            lostPreviewButton = new System.Windows.Forms.Button();
+            lostTextBox = new System.Windows.Forms.TextBox();
+            wonGroup = new System.Windows.Forms.GroupBox();
+            wonStartTextBox = new System.Windows.Forms.TextBox();
+            label5 = new System.Windows.Forms.Label();
+            wonTrackBar = new System.Windows.Forms.TrackBar();
+            wonButton = new System.Windows.Forms.Button();
+            wonPreviewButton = new System.Windows.Forms.Button();
+            wonTextBox = new System.Windows.Forms.TextBox();
+            bombGroup = new System.Windows.Forms.GroupBox();
+            bombStartTextBox = new System.Windows.Forms.TextBox();
+            label4 = new System.Windows.Forms.Label();
+            bombTrackBar = new System.Windows.Forms.TrackBar();
+            bombButton = new System.Windows.Forms.Button();
+            bombPreviewButton = new System.Windows.Forms.Button();
+            bombTextBox = new System.Windows.Forms.TextBox();
+            saveButton = new System.Windows.Forms.Button();
+            cancelButton = new System.Windows.Forms.Button();
+            deleteButton = new System.Windows.Forms.Button();
+            openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            bombTenSecBox1 = new System.Windows.Forms.GroupBox();
+            bombTenSecStartBox = new System.Windows.Forms.TextBox();
+            label8 = new System.Windows.Forms.Label();
+            bombTenSecTrackBar = new System.Windows.Forms.TrackBar();
+            bombTenSecButton = new System.Windows.Forms.Button();
+            bombTenSecPreviewButton = new System.Windows.Forms.Button();
+            bombTenSecTextBox = new System.Windows.Forms.TextBox();
+            roundTenSecBox = new System.Windows.Forms.GroupBox();
+            roundTenSecStartBox = new System.Windows.Forms.TextBox();
+            label9 = new System.Windows.Forms.Label();
+            roundTenSecTrackBar = new System.Windows.Forms.TrackBar();
+            roundTenSecButton = new System.Windows.Forms.Button();
+            roundTenSecPreviewButton = new System.Windows.Forms.Button();
+            roundTenSecTextBox = new System.Windows.Forms.TextBox();
+            mainMenuGroupBox = new System.Windows.Forms.GroupBox();
+            label10 = new System.Windows.Forms.Label();
+            menuStartTextBox = new System.Windows.Forms.TextBox();
+            menuTrackBar = new System.Windows.Forms.TrackBar();
+            menuButton = new System.Windows.Forms.Button();
+            menuPreviewButton = new System.Windows.Forms.Button();
+            menuTextBox = new System.Windows.Forms.TextBox();
+            freezeGroup.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)freezeTrackBar).BeginInit();
+            startGroup.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)startTrackBar).BeginInit();
+            MVPGroup.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)MVPTrackBar).BeginInit();
+            lostGroup.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)lostTrackBar).BeginInit();
+            wonGroup.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)wonTrackBar).BeginInit();
+            bombGroup.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)bombTrackBar).BeginInit();
+            bombTenSecBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)bombTenSecTrackBar).BeginInit();
+            roundTenSecBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)roundTenSecTrackBar).BeginInit();
+            mainMenuGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)menuTrackBar).BeginInit();
+            SuspendLayout();
+            //
             // freezeButton
-            // 
-            this.freezeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.freezeButton.Location = new System.Drawing.Point(6, 61);
-            this.freezeButton.Name = "freezeButton";
-            this.freezeButton.Size = new System.Drawing.Size(75, 23);
-            this.freezeButton.TabIndex = 1;
-            this.freezeButton.Text = "Browse";
-            this.freezeButton.UseVisualStyleBackColor = true;
-            this.freezeButton.Click += new System.EventHandler(this.freezeButton_Click);
-            // 
-            // freezePreviewButton
-            // 
-            this.freezePreviewButton = new System.Windows.Forms.Button();
-            this.freezePreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.freezePreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.freezePreviewButton.Name = "freezePreviewButton";
-            this.freezePreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.freezePreviewButton.TabIndex = 2;
-            this.freezePreviewButton.Text = "▶";
-            this.freezePreviewButton.UseVisualStyleBackColor = true;
-            this.freezePreviewButton.Click += new System.EventHandler(this.freezePreviewButton_Click);
+            //
+            freezeButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            freezeButton.Location = new System.Drawing.Point(7, 81);
+            freezeButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            freezeButton.Name = "freezeButton";
+            freezeButton.Size = new System.Drawing.Size(86, 31);
+            freezeButton.TabIndex = 1;
+            freezeButton.Text = "Browse";
+            freezeButton.UseVisualStyleBackColor = true;
+            freezeButton.Click += freezeButton_Click;
             // 
             // freezeTextBox
             // 
-            this.freezeTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.freezeTextBox.Location = new System.Drawing.Point(98, 61);
-            this.freezeTextBox.Name = "freezeTextBox";
-            this.freezeTextBox.Size = new System.Drawing.Size(131, 23);
-            this.freezeTextBox.TabIndex = 2;
-            this.freezeTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            freezeTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            freezeTextBox.Location = new System.Drawing.Point(112, 68);
+            freezeTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            freezeTextBox.Name = "freezeTextBox";
+            freezeTextBox.Size = new System.Drawing.Size(149, 27);
+            freezeTextBox.TabIndex = 2;
+            freezeTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // freezeGroup
             // 
-            this.freezeGroup.Controls.Add(this.label1);
-            this.freezeGroup.Controls.Add(this.freezeStartTextBox);
-            this.freezeGroup.Controls.Add(this.freezeTrackBar);
-            this.freezeGroup.Controls.Add(this.freezeButton);
-            this.freezeGroup.Controls.Add(this.freezePreviewButton);
-            this.freezeGroup.Controls.Add(this.freezeTextBox);
-            this.freezeGroup.Location = new System.Drawing.Point(12, 50);
-            this.freezeGroup.Name = "freezeGroup";
-            this.freezeGroup.Size = new System.Drawing.Size(235, 90);
-            this.freezeGroup.TabIndex = 3;
-            this.freezeGroup.TabStop = false;
-            this.freezeGroup.Text = "Freeze Time:";
+            freezeGroup.Controls.Add(label1);
+            freezeGroup.Controls.Add(freezeStartTextBox);
+            freezeGroup.Controls.Add(freezeTrackBar);
+            freezeGroup.Controls.Add(freezeButton);
+            freezeGroup.Controls.Add(freezePreviewButton);
+            freezeGroup.Controls.Add(freezeTextBox);
+            freezeGroup.Location = new System.Drawing.Point(14, 67);
+            freezeGroup.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            freezeGroup.Name = "freezeGroup";
+            freezeGroup.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            freezeGroup.Size = new System.Drawing.Size(269, 120);
+            freezeGroup.TabIndex = 3;
+            freezeGroup.TabStop = false;
+            freezeGroup.Text = "Freeze Time:";
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 19);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(49, 15);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Start At:";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(7, 25);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(62, 20);
+            label1.TabIndex = 6;
+            label1.Text = "Start At:";
             // 
             // freezeStartTextBox
             // 
-            this.freezeStartTextBox.Location = new System.Drawing.Point(61, 16);
-            this.freezeStartTextBox.Name = "freezeStartTextBox";
-            this.freezeStartTextBox.PlaceholderText = "Seconds";
-            this.freezeStartTextBox.Size = new System.Drawing.Size(55, 23);
-            this.freezeStartTextBox.TabIndex = 5;
-            this.freezeStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.freezeStartTextbox_KeyPress);
+            freezeStartTextBox.Location = new System.Drawing.Point(70, 21);
+            freezeStartTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            freezeStartTextBox.Name = "freezeStartTextBox";
+            freezeStartTextBox.PlaceholderText = "Seconds";
+            freezeStartTextBox.Size = new System.Drawing.Size(62, 27);
+            freezeStartTextBox.TabIndex = 5;
+            freezeStartTextBox.KeyPress += freezeStartTextbox_KeyPress;
             // 
             // freezeTrackBar
             // 
-            this.freezeTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.freezeTrackBar.AutoSize = false;
-            this.freezeTrackBar.LargeChange = 10;
-            this.freezeTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.freezeTrackBar.Maximum = 100;
-            this.freezeTrackBar.Name = "freezeTrackBar";
-            this.freezeTrackBar.Size = new System.Drawing.Size(217, 24);
-            this.freezeTrackBar.SmallChange = 5;
-            this.freezeTrackBar.TabIndex = 3;
-            this.freezeTrackBar.Tag = "";
-            this.freezeTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.freezeTrackBar.Value = 100;
+            freezeTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            freezeTrackBar.AutoSize = false;
+            freezeTrackBar.LargeChange = 10;
+            freezeTrackBar.Location = new System.Drawing.Point(7, 49);
+            freezeTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            freezeTrackBar.Maximum = 100;
+            freezeTrackBar.Name = "freezeTrackBar";
+            freezeTrackBar.Size = new System.Drawing.Size(248, 32);
+            freezeTrackBar.SmallChange = 5;
+            freezeTrackBar.TabIndex = 3;
+            freezeTrackBar.Tag = "";
+            freezeTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            freezeTrackBar.Value = 100;
+            //
+            // freezePreviewButton
+            //
+            freezePreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            freezePreviewButton.Location = new System.Drawing.Point(82, 81);
+            freezePreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            freezePreviewButton.Name = "freezePreviewButton";
+            freezePreviewButton.Size = new System.Drawing.Size(26, 31);
+            freezePreviewButton.TabIndex = 2;
+            freezePreviewButton.Text = "▶";
+            freezePreviewButton.UseVisualStyleBackColor = true;
+            freezePreviewButton.Click += freezePreviewButton_Click;
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 9);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(42, 15);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "Name:";
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(14, 12);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(52, 20);
+            label2.TabIndex = 7;
+            label2.Text = "Name:";
             // 
             // nameTextBox
             // 
-            this.nameTextBox.Location = new System.Drawing.Point(60, 6);
-            this.nameTextBox.Name = "nameTextBox";
-            this.nameTextBox.Size = new System.Drawing.Size(121, 23);
-            this.nameTextBox.TabIndex = 8;
+            nameTextBox.Location = new System.Drawing.Point(69, 8);
+            nameTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            nameTextBox.Name = "nameTextBox";
+            nameTextBox.Size = new System.Drawing.Size(138, 27);
+            nameTextBox.TabIndex = 8;
             // 
             // startGroup
             // 
-            this.startGroup.Controls.Add(this.startStartTextBox);
-            this.startGroup.Controls.Add(this.label3);
-            this.startGroup.Controls.Add(this.startTrackBar);
-            this.startGroup.Controls.Add(this.startButton);
-            this.startGroup.Controls.Add(this.startPreviewButton);
-            this.startGroup.Controls.Add(this.startTextBox);
-            this.startGroup.Location = new System.Drawing.Point(12, 146);
-            this.startGroup.Name = "startGroup";
-            this.startGroup.Size = new System.Drawing.Size(235, 90);
-            this.startGroup.TabIndex = 9;
-            this.startGroup.TabStop = false;
-            this.startGroup.Text = "Round Start:";
+            startGroup.Controls.Add(startStartTextBox);
+            startGroup.Controls.Add(label3);
+            startGroup.Controls.Add(startTrackBar);
+            startGroup.Controls.Add(startButton);
+            startGroup.Controls.Add(startPreviewButton);
+            startGroup.Controls.Add(startTextBox);
+            startGroup.Location = new System.Drawing.Point(14, 195);
+            startGroup.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            startGroup.Name = "startGroup";
+            startGroup.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            startGroup.Size = new System.Drawing.Size(269, 120);
+            startGroup.TabIndex = 9;
+            startGroup.TabStop = false;
+            startGroup.Text = "Round Start:";
             // 
             // startStartTextBox
             // 
-            this.startStartTextBox.Location = new System.Drawing.Point(61, 16);
-            this.startStartTextBox.Name = "startStartTextBox";
-            this.startStartTextBox.PlaceholderText = "Seconds";
-            this.startStartTextBox.Size = new System.Drawing.Size(55, 23);
-            this.startStartTextBox.TabIndex = 8;
-            this.startStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.startStartTextBox_KeyPress);
+            startStartTextBox.Location = new System.Drawing.Point(70, 21);
+            startStartTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            startStartTextBox.Name = "startStartTextBox";
+            startStartTextBox.PlaceholderText = "Seconds";
+            startStartTextBox.Size = new System.Drawing.Size(62, 27);
+            startStartTextBox.TabIndex = 8;
+            startStartTextBox.KeyPress += startStartTextBox_KeyPress;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 19);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(49, 15);
-            this.label3.TabIndex = 7;
-            this.label3.Text = "Start At:";
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(7, 25);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(62, 20);
+            label3.TabIndex = 7;
+            label3.Text = "Start At:";
             // 
             // startTrackBar
             // 
-            this.startTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.startTrackBar.AutoSize = false;
-            this.startTrackBar.LargeChange = 10;
-            this.startTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.startTrackBar.Maximum = 100;
-            this.startTrackBar.Name = "startTrackBar";
-            this.startTrackBar.Size = new System.Drawing.Size(223, 23);
-            this.startTrackBar.SmallChange = 5;
-            this.startTrackBar.TabIndex = 3;
-            this.startTrackBar.Tag = "";
-            this.startTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.startTrackBar.Value = 100;
+            startTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            startTrackBar.AutoSize = false;
+            startTrackBar.LargeChange = 10;
+            startTrackBar.Location = new System.Drawing.Point(7, 49);
+            startTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            startTrackBar.Maximum = 100;
+            startTrackBar.Name = "startTrackBar";
+            startTrackBar.Size = new System.Drawing.Size(255, 31);
+            startTrackBar.SmallChange = 5;
+            startTrackBar.TabIndex = 3;
+            startTrackBar.Tag = "";
+            startTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            startTrackBar.Value = 100;
             // 
             // startButton
             // 
-            this.startButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.startButton.Location = new System.Drawing.Point(6, 61);
-            this.startButton.Name = "startButton";
-            this.startButton.Size = new System.Drawing.Size(75, 23);
-            this.startButton.TabIndex = 1;
-            this.startButton.Text = "Browse";
-            this.startButton.UseVisualStyleBackColor = true;
-            this.startButton.Click += new System.EventHandler(this.startButton_Click);
+            startButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            startButton.Location = new System.Drawing.Point(7, 81);
+            startButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            startButton.Name = "startButton";
+            startButton.Size = new System.Drawing.Size(86, 31);
+            startButton.TabIndex = 1;
+            startButton.Text = "Browse";
+            startButton.UseVisualStyleBackColor = true;
+            startButton.Click += startButton_Click;
             // 
             // startPreviewButton
             // 
-            this.startPreviewButton = new System.Windows.Forms.Button();
-            this.startPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.startPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.startPreviewButton.Name = "startPreviewButton";
-            this.startPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.startPreviewButton.TabIndex = 2;
-            this.startPreviewButton.Text = "▶";
-            this.startPreviewButton.UseVisualStyleBackColor = true;
-            this.startPreviewButton.Click += new System.EventHandler(this.startPreviewButton_Click);
+            startPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            startPreviewButton.Location = new System.Drawing.Point(82, 81);
+            startPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            startPreviewButton.Name = "startPreviewButton";
+            startPreviewButton.Size = new System.Drawing.Size(26, 31);
+            startPreviewButton.TabIndex = 2;
+            startPreviewButton.Text = "▶";
+            startPreviewButton.UseVisualStyleBackColor = true;
+            startPreviewButton.Click += startPreviewButton_Click;
             // 
             // startTextBox
             // 
-            this.startTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.startTextBox.Location = new System.Drawing.Point(98, 61);
-            this.startTextBox.Name = "startTextBox";
-            this.startTextBox.Size = new System.Drawing.Size(131, 23);
-            this.startTextBox.TabIndex = 2;
+            startTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            startTextBox.Location = new System.Drawing.Point(112, 68);
+            startTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            startTextBox.Name = "startTextBox";
+            startTextBox.Size = new System.Drawing.Size(149, 27);
+            startTextBox.TabIndex = 2;
             // 
             // MVPGroup
             // 
-            this.MVPGroup.Controls.Add(this.MVPStartTextBox);
-            this.MVPGroup.Controls.Add(this.label7);
-            this.MVPGroup.Controls.Add(this.MVPTrackBar);
-            this.MVPGroup.Controls.Add(this.MVPButton);
-            this.MVPGroup.Controls.Add(this.MVPPreviewButton);
-            this.MVPGroup.Controls.Add(this.MVPTextBox);
-            this.MVPGroup.Location = new System.Drawing.Point(253, 241);
-            this.MVPGroup.Name = "MVPGroup";
-            this.MVPGroup.Size = new System.Drawing.Size(235, 90);
-            this.MVPGroup.TabIndex = 13;
-            this.MVPGroup.TabStop = false;
-            this.MVPGroup.Text = "MVP:";
+            MVPGroup.Controls.Add(MVPStartTextBox);
+            MVPGroup.Controls.Add(label7);
+            MVPGroup.Controls.Add(MVPTrackBar);
+            MVPGroup.Controls.Add(MVPButton);
+            MVPGroup.Controls.Add(MVPPreviewButton);
+            MVPGroup.Controls.Add(MVPTextBox);
+            MVPGroup.Location = new System.Drawing.Point(289, 321);
+            MVPGroup.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            MVPGroup.Name = "MVPGroup";
+            MVPGroup.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            MVPGroup.Size = new System.Drawing.Size(269, 120);
+            MVPGroup.TabIndex = 13;
+            MVPGroup.TabStop = false;
+            MVPGroup.Text = "MVP:";
             // 
             // MVPStartTextBox
             // 
-            this.MVPStartTextBox.Location = new System.Drawing.Point(61, 16);
-            this.MVPStartTextBox.Name = "MVPStartTextBox";
-            this.MVPStartTextBox.PlaceholderText = "Seconds";
-            this.MVPStartTextBox.Size = new System.Drawing.Size(55, 23);
-            this.MVPStartTextBox.TabIndex = 11;
-            this.MVPStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MVPStartTextBox_KeyPress);
+            MVPStartTextBox.Location = new System.Drawing.Point(70, 21);
+            MVPStartTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            MVPStartTextBox.Name = "MVPStartTextBox";
+            MVPStartTextBox.PlaceholderText = "Seconds";
+            MVPStartTextBox.Size = new System.Drawing.Size(62, 27);
+            MVPStartTextBox.TabIndex = 11;
+            MVPStartTextBox.KeyPress += MVPStartTextBox_KeyPress;
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(6, 19);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(49, 15);
-            this.label7.TabIndex = 7;
-            this.label7.Text = "Start At:";
+            label7.AutoSize = true;
+            label7.Location = new System.Drawing.Point(7, 25);
+            label7.Name = "label7";
+            label7.Size = new System.Drawing.Size(62, 20);
+            label7.TabIndex = 7;
+            label7.Text = "Start At:";
             // 
             // MVPTrackBar
             // 
-            this.MVPTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.MVPTrackBar.AutoSize = false;
-            this.MVPTrackBar.LargeChange = 10;
-            this.MVPTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.MVPTrackBar.Maximum = 100;
-            this.MVPTrackBar.Name = "MVPTrackBar";
-            this.MVPTrackBar.Size = new System.Drawing.Size(223, 24);
-            this.MVPTrackBar.SmallChange = 5;
-            this.MVPTrackBar.TabIndex = 3;
-            this.MVPTrackBar.Tag = "";
-            this.MVPTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.MVPTrackBar.Value = 100;
+            MVPTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            MVPTrackBar.AutoSize = false;
+            MVPTrackBar.LargeChange = 10;
+            MVPTrackBar.Location = new System.Drawing.Point(7, 49);
+            MVPTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            MVPTrackBar.Maximum = 100;
+            MVPTrackBar.Name = "MVPTrackBar";
+            MVPTrackBar.Size = new System.Drawing.Size(255, 32);
+            MVPTrackBar.SmallChange = 5;
+            MVPTrackBar.TabIndex = 3;
+            MVPTrackBar.Tag = "";
+            MVPTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            MVPTrackBar.Value = 100;
             // 
             // MVPButton
             // 
-            this.MVPButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.MVPButton.Location = new System.Drawing.Point(6, 61);
-            this.MVPButton.Name = "MVPButton";
-            this.MVPButton.Size = new System.Drawing.Size(75, 23);
-            this.MVPButton.TabIndex = 1;
-            this.MVPButton.Text = "Browse";
-            this.MVPButton.UseVisualStyleBackColor = true;
-            this.MVPButton.Click += new System.EventHandler(this.MVPButton_Click);
+            MVPButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            MVPButton.Location = new System.Drawing.Point(7, 81);
+            MVPButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            MVPButton.Name = "MVPButton";
+            MVPButton.Size = new System.Drawing.Size(86, 31);
+            MVPButton.TabIndex = 1;
+            MVPButton.Text = "Browse";
+            MVPButton.UseVisualStyleBackColor = true;
+            MVPButton.Click += MVPButton_Click;
             // 
             // MVPPreviewButton
             // 
-            this.MVPPreviewButton = new System.Windows.Forms.Button();
-            this.MVPPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.MVPPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.MVPPreviewButton.Name = "MVPPreviewButton";
-            this.MVPPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.MVPPreviewButton.TabIndex = 2;
-            this.MVPPreviewButton.Text = "▶";
-            this.MVPPreviewButton.UseVisualStyleBackColor = true;
-            this.MVPPreviewButton.Click += new System.EventHandler(this.MVPPreviewButton_Click);
+            MVPPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            MVPPreviewButton.Location = new System.Drawing.Point(82, 81);
+            MVPPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            MVPPreviewButton.Name = "MVPPreviewButton";
+            MVPPreviewButton.Size = new System.Drawing.Size(26, 31);
+            MVPPreviewButton.TabIndex = 2;
+            MVPPreviewButton.Text = "▶";
+            MVPPreviewButton.UseVisualStyleBackColor = true;
+            MVPPreviewButton.Click += MVPPreviewButton_Click;
             // 
             // MVPTextBox
             // 
-            this.MVPTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.MVPTextBox.Location = new System.Drawing.Point(104, 61);
-            this.MVPTextBox.Name = "MVPTextBox";
-            this.MVPTextBox.Size = new System.Drawing.Size(125, 23);
-            this.MVPTextBox.TabIndex = 2;
+            MVPTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            MVPTextBox.Location = new System.Drawing.Point(119, 68);
+            MVPTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            MVPTextBox.Name = "MVPTextBox";
+            MVPTextBox.Size = new System.Drawing.Size(142, 27);
+            MVPTextBox.TabIndex = 2;
             // 
             // lostGroup
             // 
-            this.lostGroup.Controls.Add(this.lostStartTextBox);
-            this.lostGroup.Controls.Add(this.label6);
-            this.lostGroup.Controls.Add(this.lostTrackBar);
-            this.lostGroup.Controls.Add(this.lostButton);
-            this.lostGroup.Controls.Add(this.lostPreviewButton);
-            this.lostGroup.Controls.Add(this.lostTextBox);
-            this.lostGroup.Location = new System.Drawing.Point(253, 146);
-            this.lostGroup.Name = "lostGroup";
-            this.lostGroup.Size = new System.Drawing.Size(235, 90);
-            this.lostGroup.TabIndex = 12;
-            this.lostGroup.TabStop = false;
-            this.lostGroup.Text = "Round Lost:";
+            lostGroup.Controls.Add(lostStartTextBox);
+            lostGroup.Controls.Add(label6);
+            lostGroup.Controls.Add(lostTrackBar);
+            lostGroup.Controls.Add(lostButton);
+            lostGroup.Controls.Add(lostPreviewButton);
+            lostGroup.Controls.Add(lostTextBox);
+            lostGroup.Location = new System.Drawing.Point(289, 195);
+            lostGroup.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            lostGroup.Name = "lostGroup";
+            lostGroup.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            lostGroup.Size = new System.Drawing.Size(269, 120);
+            lostGroup.TabIndex = 12;
+            lostGroup.TabStop = false;
+            lostGroup.Text = "Round Lost:";
             // 
             // lostStartTextBox
             // 
-            this.lostStartTextBox.Location = new System.Drawing.Point(61, 16);
-            this.lostStartTextBox.Name = "lostStartTextBox";
-            this.lostStartTextBox.PlaceholderText = "Seconds";
-            this.lostStartTextBox.Size = new System.Drawing.Size(55, 23);
-            this.lostStartTextBox.TabIndex = 10;
-            this.lostStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.lostStartTextBox_KeyPress);
+            lostStartTextBox.Location = new System.Drawing.Point(70, 21);
+            lostStartTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            lostStartTextBox.Name = "lostStartTextBox";
+            lostStartTextBox.PlaceholderText = "Seconds";
+            lostStartTextBox.Size = new System.Drawing.Size(62, 27);
+            lostStartTextBox.TabIndex = 10;
+            lostStartTextBox.KeyPress += lostStartTextBox_KeyPress;
             // 
             // label6
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(6, 19);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(49, 15);
-            this.label6.TabIndex = 7;
-            this.label6.Text = "Start At:";
+            label6.AutoSize = true;
+            label6.Location = new System.Drawing.Point(7, 25);
+            label6.Name = "label6";
+            label6.Size = new System.Drawing.Size(62, 20);
+            label6.TabIndex = 7;
+            label6.Text = "Start At:";
             // 
             // lostTrackBar
             // 
-            this.lostTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lostTrackBar.AutoSize = false;
-            this.lostTrackBar.LargeChange = 10;
-            this.lostTrackBar.Location = new System.Drawing.Point(6, 36);
-            this.lostTrackBar.Maximum = 100;
-            this.lostTrackBar.Name = "lostTrackBar";
-            this.lostTrackBar.Size = new System.Drawing.Size(223, 24);
-            this.lostTrackBar.SmallChange = 5;
-            this.lostTrackBar.TabIndex = 3;
-            this.lostTrackBar.Tag = "";
-            this.lostTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.lostTrackBar.Value = 100;
+            lostTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            lostTrackBar.AutoSize = false;
+            lostTrackBar.LargeChange = 10;
+            lostTrackBar.Location = new System.Drawing.Point(7, 48);
+            lostTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            lostTrackBar.Maximum = 100;
+            lostTrackBar.Name = "lostTrackBar";
+            lostTrackBar.Size = new System.Drawing.Size(255, 32);
+            lostTrackBar.SmallChange = 5;
+            lostTrackBar.TabIndex = 3;
+            lostTrackBar.Tag = "";
+            lostTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            lostTrackBar.Value = 100;
             // 
             // lostButton
             // 
-            this.lostButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.lostButton.Location = new System.Drawing.Point(6, 61);
-            this.lostButton.Name = "lostButton";
-            this.lostButton.Size = new System.Drawing.Size(75, 23);
-            this.lostButton.TabIndex = 1;
-            this.lostButton.Text = "Browse";
-            this.lostButton.UseVisualStyleBackColor = true;
-            this.lostButton.Click += new System.EventHandler(this.lostButton_Click);
+            lostButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            lostButton.Location = new System.Drawing.Point(7, 81);
+            lostButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            lostButton.Name = "lostButton";
+            lostButton.Size = new System.Drawing.Size(86, 31);
+            lostButton.TabIndex = 1;
+            lostButton.Text = "Browse";
+            lostButton.UseVisualStyleBackColor = true;
+            lostButton.Click += lostButton_Click;
             // 
             // lostPreviewButton
             // 
-            this.lostPreviewButton = new System.Windows.Forms.Button();
-            this.lostPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.lostPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.lostPreviewButton.Name = "lostPreviewButton";
-            this.lostPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.lostPreviewButton.TabIndex = 2;
-            this.lostPreviewButton.Text = "▶";
-            this.lostPreviewButton.UseVisualStyleBackColor = true;
-            this.lostPreviewButton.Click += new System.EventHandler(this.lostPreviewButton_Click);
+            lostPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            lostPreviewButton.Location = new System.Drawing.Point(82, 81);
+            lostPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            lostPreviewButton.Name = "lostPreviewButton";
+            lostPreviewButton.Size = new System.Drawing.Size(26, 31);
+            lostPreviewButton.TabIndex = 2;
+            lostPreviewButton.Text = "▶";
+            lostPreviewButton.UseVisualStyleBackColor = true;
+            lostPreviewButton.Click += lostPreviewButton_Click;
             // 
             // lostTextBox
             // 
-            this.lostTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.lostTextBox.Location = new System.Drawing.Point(98, 61);
-            this.lostTextBox.Name = "lostTextBox";
-            this.lostTextBox.Size = new System.Drawing.Size(131, 23);
-            this.lostTextBox.TabIndex = 2;
+            lostTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            lostTextBox.Location = new System.Drawing.Point(112, 68);
+            lostTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            lostTextBox.Name = "lostTextBox";
+            lostTextBox.Size = new System.Drawing.Size(149, 27);
+            lostTextBox.TabIndex = 2;
             // 
             // wonGroup
             // 
-            this.wonGroup.Controls.Add(this.wonStartTextBox);
-            this.wonGroup.Controls.Add(this.label5);
-            this.wonGroup.Controls.Add(this.wonTrackBar);
-            this.wonGroup.Controls.Add(this.wonButton);
-            this.wonGroup.Controls.Add(this.wonPreviewButton);
-            this.wonGroup.Controls.Add(this.wonTextBox);
-            this.wonGroup.Location = new System.Drawing.Point(253, 50);
-            this.wonGroup.Name = "wonGroup";
-            this.wonGroup.Size = new System.Drawing.Size(235, 90);
-            this.wonGroup.TabIndex = 11;
-            this.wonGroup.TabStop = false;
-            this.wonGroup.Text = "Round Won:";
+            wonGroup.Controls.Add(wonStartTextBox);
+            wonGroup.Controls.Add(label5);
+            wonGroup.Controls.Add(wonTrackBar);
+            wonGroup.Controls.Add(wonButton);
+            wonGroup.Controls.Add(wonPreviewButton);
+            wonGroup.Controls.Add(wonTextBox);
+            wonGroup.Location = new System.Drawing.Point(289, 67);
+            wonGroup.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            wonGroup.Name = "wonGroup";
+            wonGroup.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            wonGroup.Size = new System.Drawing.Size(269, 120);
+            wonGroup.TabIndex = 11;
+            wonGroup.TabStop = false;
+            wonGroup.Text = "Round Won:";
             // 
             // wonStartTextBox
             // 
-            this.wonStartTextBox.Location = new System.Drawing.Point(61, 16);
-            this.wonStartTextBox.Name = "wonStartTextBox";
-            this.wonStartTextBox.PlaceholderText = "Seconds";
-            this.wonStartTextBox.Size = new System.Drawing.Size(55, 23);
-            this.wonStartTextBox.TabIndex = 9;
-            this.wonStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.wonStartTextBox_KeyPress);
+            wonStartTextBox.Location = new System.Drawing.Point(70, 21);
+            wonStartTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            wonStartTextBox.Name = "wonStartTextBox";
+            wonStartTextBox.PlaceholderText = "Seconds";
+            wonStartTextBox.Size = new System.Drawing.Size(62, 27);
+            wonStartTextBox.TabIndex = 9;
+            wonStartTextBox.KeyPress += wonStartTextBox_KeyPress;
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(6, 19);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(49, 15);
-            this.label5.TabIndex = 7;
-            this.label5.Text = "Start At:";
+            label5.AutoSize = true;
+            label5.Location = new System.Drawing.Point(7, 25);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(62, 20);
+            label5.TabIndex = 7;
+            label5.Text = "Start At:";
             // 
             // wonTrackBar
             // 
-            this.wonTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.wonTrackBar.AutoSize = false;
-            this.wonTrackBar.LargeChange = 10;
-            this.wonTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.wonTrackBar.Maximum = 100;
-            this.wonTrackBar.Name = "wonTrackBar";
-            this.wonTrackBar.Size = new System.Drawing.Size(223, 24);
-            this.wonTrackBar.SmallChange = 5;
-            this.wonTrackBar.TabIndex = 3;
-            this.wonTrackBar.Tag = "";
-            this.wonTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.wonTrackBar.Value = 100;
+            wonTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            wonTrackBar.AutoSize = false;
+            wonTrackBar.LargeChange = 10;
+            wonTrackBar.Location = new System.Drawing.Point(7, 49);
+            wonTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            wonTrackBar.Maximum = 100;
+            wonTrackBar.Name = "wonTrackBar";
+            wonTrackBar.Size = new System.Drawing.Size(255, 32);
+            wonTrackBar.SmallChange = 5;
+            wonTrackBar.TabIndex = 3;
+            wonTrackBar.Tag = "";
+            wonTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            wonTrackBar.Value = 100;
             // 
             // wonButton
             // 
-            this.wonButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.wonButton.Location = new System.Drawing.Point(6, 61);
-            this.wonButton.Name = "wonButton";
-            this.wonButton.Size = new System.Drawing.Size(75, 23);
-            this.wonButton.TabIndex = 1;
-            this.wonButton.Text = "Browse";
-            this.wonButton.UseVisualStyleBackColor = true;
-            this.wonButton.Click += new System.EventHandler(this.wonButton_Click);
+            wonButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            wonButton.Location = new System.Drawing.Point(7, 81);
+            wonButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            wonButton.Name = "wonButton";
+            wonButton.Size = new System.Drawing.Size(86, 31);
+            wonButton.TabIndex = 1;
+            wonButton.Text = "Browse";
+            wonButton.UseVisualStyleBackColor = true;
+            wonButton.Click += wonButton_Click;
             // 
             // wonPreviewButton
             // 
-            this.wonPreviewButton = new System.Windows.Forms.Button();
-            this.wonPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.wonPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.wonPreviewButton.Name = "wonPreviewButton";
-            this.wonPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.wonPreviewButton.TabIndex = 2;
-            this.wonPreviewButton.Text = "▶";
-            this.wonPreviewButton.UseVisualStyleBackColor = true;
-            this.wonPreviewButton.Click += new System.EventHandler(this.wonPreviewButton_Click);
+            wonPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            wonPreviewButton.Location = new System.Drawing.Point(82, 81);
+            wonPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            wonPreviewButton.Name = "wonPreviewButton";
+            wonPreviewButton.Size = new System.Drawing.Size(26, 31);
+            wonPreviewButton.TabIndex = 2;
+            wonPreviewButton.Text = "▶";
+            wonPreviewButton.UseVisualStyleBackColor = true;
+            wonPreviewButton.Click += wonPreviewButton_Click;
             // 
             // wonTextBox
             // 
-            this.wonTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.wonTextBox.Location = new System.Drawing.Point(98, 61);
-            this.wonTextBox.Name = "wonTextBox";
-            this.wonTextBox.Size = new System.Drawing.Size(131, 23);
-            this.wonTextBox.TabIndex = 2;
+            wonTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            wonTextBox.Location = new System.Drawing.Point(112, 68);
+            wonTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            wonTextBox.Name = "wonTextBox";
+            wonTextBox.Size = new System.Drawing.Size(149, 27);
+            wonTextBox.TabIndex = 2;
             // 
             // bombGroup
             // 
-            this.bombGroup.Controls.Add(this.bombStartTextBox);
-            this.bombGroup.Controls.Add(this.label4);
-            this.bombGroup.Controls.Add(this.bombTrackBar);
-            this.bombGroup.Controls.Add(this.bombButton);
-            this.bombGroup.Controls.Add(this.bombPreviewButton);
-            this.bombGroup.Controls.Add(this.bombTextBox);
-            this.bombGroup.Location = new System.Drawing.Point(12, 241);
-            this.bombGroup.Name = "bombGroup";
-            this.bombGroup.Size = new System.Drawing.Size(235, 90);
-            this.bombGroup.TabIndex = 10;
-            this.bombGroup.TabStop = false;
-            this.bombGroup.Text = "Bomb Planted:";
+            bombGroup.Controls.Add(bombStartTextBox);
+            bombGroup.Controls.Add(label4);
+            bombGroup.Controls.Add(bombTrackBar);
+            bombGroup.Controls.Add(bombButton);
+            bombGroup.Controls.Add(bombPreviewButton);
+            bombGroup.Controls.Add(bombTextBox);
+            bombGroup.Location = new System.Drawing.Point(14, 321);
+            bombGroup.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombGroup.Name = "bombGroup";
+            bombGroup.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombGroup.Size = new System.Drawing.Size(269, 120);
+            bombGroup.TabIndex = 10;
+            bombGroup.TabStop = false;
+            bombGroup.Text = "Bomb Planted:";
             // 
             // bombStartTextBox
             // 
-            this.bombStartTextBox.Location = new System.Drawing.Point(61, 16);
-            this.bombStartTextBox.Name = "bombStartTextBox";
-            this.bombStartTextBox.PlaceholderText = "Seconds";
-            this.bombStartTextBox.Size = new System.Drawing.Size(55, 23);
-            this.bombStartTextBox.TabIndex = 8;
-            this.bombStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.bombStartTextBox_KeyPress);
+            bombStartTextBox.Location = new System.Drawing.Point(70, 21);
+            bombStartTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombStartTextBox.Name = "bombStartTextBox";
+            bombStartTextBox.PlaceholderText = "Seconds";
+            bombStartTextBox.Size = new System.Drawing.Size(62, 27);
+            bombStartTextBox.TabIndex = 8;
+            bombStartTextBox.KeyPress += bombStartTextBox_KeyPress;
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 19);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(49, 15);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "Start At:";
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(7, 25);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(62, 20);
+            label4.TabIndex = 7;
+            label4.Text = "Start At:";
             // 
             // bombTrackBar
             // 
-            this.bombTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.bombTrackBar.AutoSize = false;
-            this.bombTrackBar.LargeChange = 10;
-            this.bombTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.bombTrackBar.Maximum = 100;
-            this.bombTrackBar.Name = "bombTrackBar";
-            this.bombTrackBar.Size = new System.Drawing.Size(223, 24);
-            this.bombTrackBar.SmallChange = 5;
-            this.bombTrackBar.TabIndex = 3;
-            this.bombTrackBar.Tag = "";
-            this.bombTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.bombTrackBar.Value = 100;
+            bombTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            bombTrackBar.AutoSize = false;
+            bombTrackBar.LargeChange = 10;
+            bombTrackBar.Location = new System.Drawing.Point(7, 49);
+            bombTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTrackBar.Maximum = 100;
+            bombTrackBar.Name = "bombTrackBar";
+            bombTrackBar.Size = new System.Drawing.Size(255, 32);
+            bombTrackBar.SmallChange = 5;
+            bombTrackBar.TabIndex = 3;
+            bombTrackBar.Tag = "";
+            bombTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            bombTrackBar.Value = 100;
             // 
             // bombButton
             // 
-            this.bombButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.bombButton.Location = new System.Drawing.Point(6, 61);
-            this.bombButton.Name = "bombButton";
-            this.bombButton.Size = new System.Drawing.Size(75, 23);
-            this.bombButton.TabIndex = 1;
-            this.bombButton.Text = "Browse";
-            this.bombButton.UseVisualStyleBackColor = true;
-            this.bombButton.Click += new System.EventHandler(this.bombButton_Click);
+            bombButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            bombButton.Location = new System.Drawing.Point(7, 81);
+            bombButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombButton.Name = "bombButton";
+            bombButton.Size = new System.Drawing.Size(86, 31);
+            bombButton.TabIndex = 1;
+            bombButton.Text = "Browse";
+            bombButton.UseVisualStyleBackColor = true;
+            bombButton.Click += bombButton_Click;
             // 
             // bombPreviewButton
             // 
-            this.bombPreviewButton = new System.Windows.Forms.Button();
-            this.bombPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.bombPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.bombPreviewButton.Name = "bombPreviewButton";
-            this.bombPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.bombPreviewButton.TabIndex = 2;
-            this.bombPreviewButton.Text = "▶";
-            this.bombPreviewButton.UseVisualStyleBackColor = true;
-            this.bombPreviewButton.Click += new System.EventHandler(this.bombPreviewButton_Click);
+            bombPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            bombPreviewButton.Location = new System.Drawing.Point(82, 81);
+            bombPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombPreviewButton.Name = "bombPreviewButton";
+            bombPreviewButton.Size = new System.Drawing.Size(26, 31);
+            bombPreviewButton.TabIndex = 2;
+            bombPreviewButton.Text = "▶";
+            bombPreviewButton.UseVisualStyleBackColor = true;
+            bombPreviewButton.Click += bombPreviewButton_Click;
             // 
             // bombTextBox
             // 
-            this.bombTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bombTextBox.Location = new System.Drawing.Point(98, 61);
-            this.bombTextBox.Name = "bombTextBox";
-            this.bombTextBox.Size = new System.Drawing.Size(131, 23);
-            this.bombTextBox.TabIndex = 2;
+            bombTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            bombTextBox.Location = new System.Drawing.Point(112, 68);
+            bombTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTextBox.Name = "bombTextBox";
+            bombTextBox.Size = new System.Drawing.Size(149, 27);
+            bombTextBox.TabIndex = 2;
             // 
             // saveButton
             // 
-            this.saveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.saveButton.Location = new System.Drawing.Point(12, 497);
-            this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(75, 23);
-            this.saveButton.TabIndex = 11;
-            this.saveButton.Text = "Save";
-            this.saveButton.UseVisualStyleBackColor = true;
-            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            saveButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            saveButton.Location = new System.Drawing.Point(14, 663);
+            saveButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            saveButton.Name = "saveButton";
+            saveButton.Size = new System.Drawing.Size(86, 31);
+            saveButton.TabIndex = 11;
+            saveButton.Text = "Save";
+            saveButton.UseVisualStyleBackColor = true;
+            saveButton.Click += saveButton_Click;
             // 
             // cancelButton
             // 
-            this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cancelButton.Location = new System.Drawing.Point(413, 497);
-            this.cancelButton.Name = "cancelButton";
-            this.cancelButton.Size = new System.Drawing.Size(75, 23);
-            this.cancelButton.TabIndex = 12;
-            this.cancelButton.Text = "Cancel";
-            this.cancelButton.UseVisualStyleBackColor = true;
-            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
+            cancelButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            cancelButton.Location = new System.Drawing.Point(472, 663);
+            cancelButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(86, 31);
+            cancelButton.TabIndex = 12;
+            cancelButton.Text = "Cancel";
+            cancelButton.UseVisualStyleBackColor = true;
+            cancelButton.Click += cancelButton_Click;
             // 
             // deleteButton
             // 
-            this.deleteButton.Location = new System.Drawing.Point(187, 5);
-            this.deleteButton.Name = "deleteButton";
-            this.deleteButton.Size = new System.Drawing.Size(75, 24);
-            this.deleteButton.TabIndex = 14;
-            this.deleteButton.Text = "Delete";
-            this.deleteButton.UseVisualStyleBackColor = true;
-            this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
+            deleteButton.Location = new System.Drawing.Point(214, 7);
+            deleteButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            deleteButton.Name = "deleteButton";
+            deleteButton.Size = new System.Drawing.Size(86, 32);
+            deleteButton.TabIndex = 14;
+            deleteButton.Text = "Delete";
+            deleteButton.UseVisualStyleBackColor = true;
+            deleteButton.Click += deleteButton_Click;
             // 
             // openFileDialog1
             // 
-            this.openFileDialog1.AddExtension = false;
-            this.openFileDialog1.FileName = "openFileDialog1";
-            this.openFileDialog1.Filter = "MP3|*.mp3|Windows Audio|*.wav|MP4 Audio|*.m4a";
-            this.openFileDialog1.ReadOnlyChecked = true;
-            this.openFileDialog1.ShowReadOnly = true;
+            openFileDialog1.AddExtension = false;
+            openFileDialog1.FileName = "openFileDialog1";
+            openFileDialog1.Filter = "MP3|*.mp3|Windows Audio|*.wav|MP4 Audio|*.m4a";
+            openFileDialog1.ReadOnlyChecked = true;
+            openFileDialog1.ShowReadOnly = true;
             // 
             // bombTenSecBox1
             // 
-            this.bombTenSecBox1.Controls.Add(this.bombTenSecStartBox);
-            this.bombTenSecBox1.Controls.Add(this.label8);
-            this.bombTenSecBox1.Controls.Add(this.bombTenSecTrackBar);
-            this.bombTenSecBox1.Controls.Add(this.bombTenSecButton);
-            this.bombTenSecBox1.Controls.Add(this.bombTenSecPreviewButton);
-            this.bombTenSecBox1.Controls.Add(this.bombTenSecTextBox);
-            this.bombTenSecBox1.Location = new System.Drawing.Point(12, 337);
-            this.bombTenSecBox1.Name = "bombTenSecBox1";
-            this.bombTenSecBox1.Size = new System.Drawing.Size(235, 90);
-            this.bombTenSecBox1.TabIndex = 15;
-            this.bombTenSecBox1.TabStop = false;
-            this.bombTenSecBox1.Text = "Bomb Ten Seconds:";
+            bombTenSecBox1.Controls.Add(bombTenSecStartBox);
+            bombTenSecBox1.Controls.Add(label8);
+            bombTenSecBox1.Controls.Add(bombTenSecTrackBar);
+            bombTenSecBox1.Controls.Add(bombTenSecButton);
+            bombTenSecBox1.Controls.Add(bombTenSecPreviewButton);
+            bombTenSecBox1.Controls.Add(bombTenSecTextBox);
+            bombTenSecBox1.Location = new System.Drawing.Point(14, 449);
+            bombTenSecBox1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTenSecBox1.Name = "bombTenSecBox1";
+            bombTenSecBox1.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTenSecBox1.Size = new System.Drawing.Size(269, 120);
+            bombTenSecBox1.TabIndex = 15;
+            bombTenSecBox1.TabStop = false;
+            bombTenSecBox1.Text = "Bomb Ten Seconds:";
             // 
             // bombTenSecStartBox
             // 
-            this.bombTenSecStartBox.Location = new System.Drawing.Point(61, 16);
-            this.bombTenSecStartBox.Name = "bombTenSecStartBox";
-            this.bombTenSecStartBox.PlaceholderText = "Seconds";
-            this.bombTenSecStartBox.Size = new System.Drawing.Size(55, 23);
-            this.bombTenSecStartBox.TabIndex = 8;
-            this.bombTenSecStartBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.bombTenSecStartBox_KeyPress);
+            bombTenSecStartBox.Location = new System.Drawing.Point(70, 21);
+            bombTenSecStartBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTenSecStartBox.Name = "bombTenSecStartBox";
+            bombTenSecStartBox.PlaceholderText = "Seconds";
+            bombTenSecStartBox.Size = new System.Drawing.Size(62, 27);
+            bombTenSecStartBox.TabIndex = 8;
+            bombTenSecStartBox.KeyPress += bombTenSecStartBox_KeyPress;
             // 
             // label8
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(6, 19);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(49, 15);
-            this.label8.TabIndex = 7;
-            this.label8.Text = "Start At:";
+            label8.AutoSize = true;
+            label8.Location = new System.Drawing.Point(7, 25);
+            label8.Name = "label8";
+            label8.Size = new System.Drawing.Size(62, 20);
+            label8.TabIndex = 7;
+            label8.Text = "Start At:";
             // 
             // bombTenSecTrackBar
             // 
-            this.bombTenSecTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.bombTenSecTrackBar.AutoSize = false;
-            this.bombTenSecTrackBar.LargeChange = 10;
-            this.bombTenSecTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.bombTenSecTrackBar.Maximum = 100;
-            this.bombTenSecTrackBar.Name = "bombTenSecTrackBar";
-            this.bombTenSecTrackBar.Size = new System.Drawing.Size(223, 24);
-            this.bombTenSecTrackBar.SmallChange = 5;
-            this.bombTenSecTrackBar.TabIndex = 3;
-            this.bombTenSecTrackBar.Tag = "";
-            this.bombTenSecTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.bombTenSecTrackBar.Value = 100;
+            bombTenSecTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            bombTenSecTrackBar.AutoSize = false;
+            bombTenSecTrackBar.LargeChange = 10;
+            bombTenSecTrackBar.Location = new System.Drawing.Point(7, 49);
+            bombTenSecTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTenSecTrackBar.Maximum = 100;
+            bombTenSecTrackBar.Name = "bombTenSecTrackBar";
+            bombTenSecTrackBar.Size = new System.Drawing.Size(255, 32);
+            bombTenSecTrackBar.SmallChange = 5;
+            bombTenSecTrackBar.TabIndex = 3;
+            bombTenSecTrackBar.Tag = "";
+            bombTenSecTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            bombTenSecTrackBar.Value = 100;
             // 
             // bombTenSecButton
             // 
-            this.bombTenSecButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.bombTenSecButton.Location = new System.Drawing.Point(6, 61);
-            this.bombTenSecButton.Name = "bombTenSecButton";
-            this.bombTenSecButton.Size = new System.Drawing.Size(75, 23);
-            this.bombTenSecButton.TabIndex = 1;
-            this.bombTenSecButton.Text = "Browse";
-            this.bombTenSecButton.UseVisualStyleBackColor = true;
-            this.bombTenSecButton.Click += new System.EventHandler(this.bombTenSecButton_Click);
+            bombTenSecButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            bombTenSecButton.Location = new System.Drawing.Point(7, 81);
+            bombTenSecButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTenSecButton.Name = "bombTenSecButton";
+            bombTenSecButton.Size = new System.Drawing.Size(86, 31);
+            bombTenSecButton.TabIndex = 1;
+            bombTenSecButton.Text = "Browse";
+            bombTenSecButton.UseVisualStyleBackColor = true;
+            bombTenSecButton.Click += bombTenSecButton_Click;
             // 
             // bombTenSecPreviewButton
             // 
-            this.bombTenSecPreviewButton = new System.Windows.Forms.Button();
-            this.bombTenSecPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.bombTenSecPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.bombTenSecPreviewButton.Name = "bombTenSecPreviewButton";
-            this.bombTenSecPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.bombTenSecPreviewButton.TabIndex = 2;
-            this.bombTenSecPreviewButton.Text = "▶";
-            this.bombTenSecPreviewButton.UseVisualStyleBackColor = true;
-            this.bombTenSecPreviewButton.Click += new System.EventHandler(this.bombTenSecPreviewButton_Click);
+            bombTenSecPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            bombTenSecPreviewButton.Location = new System.Drawing.Point(82, 81);
+            bombTenSecPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTenSecPreviewButton.Name = "bombTenSecPreviewButton";
+            bombTenSecPreviewButton.Size = new System.Drawing.Size(26, 31);
+            bombTenSecPreviewButton.TabIndex = 2;
+            bombTenSecPreviewButton.Text = "▶";
+            bombTenSecPreviewButton.UseVisualStyleBackColor = true;
+            bombTenSecPreviewButton.Click += bombTenSecPreviewButton_Click;
             // 
             // bombTenSecTextBox
             // 
-            this.bombTenSecTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bombTenSecTextBox.Location = new System.Drawing.Point(98, 61);
-            this.bombTenSecTextBox.Name = "bombTenSecTextBox";
-            this.bombTenSecTextBox.Size = new System.Drawing.Size(131, 23);
-            this.bombTenSecTextBox.TabIndex = 2;
+            bombTenSecTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            bombTenSecTextBox.Location = new System.Drawing.Point(112, 68);
+            bombTenSecTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            bombTenSecTextBox.Name = "bombTenSecTextBox";
+            bombTenSecTextBox.Size = new System.Drawing.Size(149, 27);
+            bombTenSecTextBox.TabIndex = 2;
             // 
             // roundTenSecBox
             // 
-            this.roundTenSecBox.Controls.Add(this.roundTenSecStartBox);
-            this.roundTenSecBox.Controls.Add(this.label9);
-            this.roundTenSecBox.Controls.Add(this.roundTenSecTrackBar);
-            this.roundTenSecBox.Controls.Add(this.roundTenSecButton);
-            this.roundTenSecBox.Controls.Add(this.roundTenSecPreviewButton);
-            this.roundTenSecBox.Controls.Add(this.roundTenSecTextBox);
-            this.roundTenSecBox.Location = new System.Drawing.Point(253, 337);
-            this.roundTenSecBox.Name = "roundTenSecBox";
-            this.roundTenSecBox.Size = new System.Drawing.Size(235, 90);
-            this.roundTenSecBox.TabIndex = 16;
-            this.roundTenSecBox.TabStop = false;
-            this.roundTenSecBox.Text = "Round Ten Seconds:";
+            roundTenSecBox.Controls.Add(roundTenSecStartBox);
+            roundTenSecBox.Controls.Add(label9);
+            roundTenSecBox.Controls.Add(roundTenSecTrackBar);
+            roundTenSecBox.Controls.Add(roundTenSecButton);
+            roundTenSecBox.Controls.Add(roundTenSecPreviewButton);
+            roundTenSecBox.Controls.Add(roundTenSecTextBox);
+            roundTenSecBox.Location = new System.Drawing.Point(289, 449);
+            roundTenSecBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            roundTenSecBox.Name = "roundTenSecBox";
+            roundTenSecBox.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            roundTenSecBox.Size = new System.Drawing.Size(269, 120);
+            roundTenSecBox.TabIndex = 16;
+            roundTenSecBox.TabStop = false;
+            roundTenSecBox.Text = "Round Ten Seconds:";
             // 
             // roundTenSecStartBox
             // 
-            this.roundTenSecStartBox.Location = new System.Drawing.Point(61, 16);
-            this.roundTenSecStartBox.Name = "roundTenSecStartBox";
-            this.roundTenSecStartBox.PlaceholderText = "Seconds";
-            this.roundTenSecStartBox.Size = new System.Drawing.Size(55, 23);
-            this.roundTenSecStartBox.TabIndex = 8;
-            this.roundTenSecStartBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.roundTenSecStartBox_KeyPress);
+            roundTenSecStartBox.Location = new System.Drawing.Point(70, 21);
+            roundTenSecStartBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            roundTenSecStartBox.Name = "roundTenSecStartBox";
+            roundTenSecStartBox.PlaceholderText = "Seconds";
+            roundTenSecStartBox.Size = new System.Drawing.Size(62, 27);
+            roundTenSecStartBox.TabIndex = 8;
+            roundTenSecStartBox.KeyPress += roundTenSecStartBox_KeyPress;
             // 
             // label9
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(6, 19);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(49, 15);
-            this.label9.TabIndex = 7;
-            this.label9.Text = "Start At:";
+            label9.AutoSize = true;
+            label9.Location = new System.Drawing.Point(7, 25);
+            label9.Name = "label9";
+            label9.Size = new System.Drawing.Size(62, 20);
+            label9.TabIndex = 7;
+            label9.Text = "Start At:";
             // 
             // roundTenSecTrackBar
             // 
-            this.roundTenSecTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.roundTenSecTrackBar.AutoSize = false;
-            this.roundTenSecTrackBar.LargeChange = 10;
-            this.roundTenSecTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.roundTenSecTrackBar.Maximum = 100;
-            this.roundTenSecTrackBar.Name = "roundTenSecTrackBar";
-            this.roundTenSecTrackBar.Size = new System.Drawing.Size(223, 24);
-            this.roundTenSecTrackBar.SmallChange = 5;
-            this.roundTenSecTrackBar.TabIndex = 3;
-            this.roundTenSecTrackBar.Tag = "";
-            this.roundTenSecTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.roundTenSecTrackBar.Value = 100;
+            roundTenSecTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            roundTenSecTrackBar.AutoSize = false;
+            roundTenSecTrackBar.LargeChange = 10;
+            roundTenSecTrackBar.Location = new System.Drawing.Point(7, 49);
+            roundTenSecTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            roundTenSecTrackBar.Maximum = 100;
+            roundTenSecTrackBar.Name = "roundTenSecTrackBar";
+            roundTenSecTrackBar.Size = new System.Drawing.Size(255, 32);
+            roundTenSecTrackBar.SmallChange = 5;
+            roundTenSecTrackBar.TabIndex = 3;
+            roundTenSecTrackBar.Tag = "";
+            roundTenSecTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            roundTenSecTrackBar.Value = 100;
             // 
             // roundTenSecButton
             // 
-            this.roundTenSecButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.roundTenSecButton.Location = new System.Drawing.Point(6, 61);
-            this.roundTenSecButton.Name = "roundTenSecButton";
-            this.roundTenSecButton.Size = new System.Drawing.Size(75, 23);
-            this.roundTenSecButton.TabIndex = 1;
-            this.roundTenSecButton.Text = "Browse";
-            this.roundTenSecButton.UseVisualStyleBackColor = true;
-            this.roundTenSecButton.Click += new System.EventHandler(this.roundTenSecButton_Click);
+            roundTenSecButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            roundTenSecButton.Location = new System.Drawing.Point(7, 81);
+            roundTenSecButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            roundTenSecButton.Name = "roundTenSecButton";
+            roundTenSecButton.Size = new System.Drawing.Size(86, 31);
+            roundTenSecButton.TabIndex = 1;
+            roundTenSecButton.Text = "Browse";
+            roundTenSecButton.UseVisualStyleBackColor = true;
+            roundTenSecButton.Click += roundTenSecButton_Click;
             // 
             // roundTenSecPreviewButton
             // 
-            this.roundTenSecPreviewButton = new System.Windows.Forms.Button();
-            this.roundTenSecPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.roundTenSecPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.roundTenSecPreviewButton.Name = "roundTenSecPreviewButton";
-            this.roundTenSecPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.roundTenSecPreviewButton.TabIndex = 2;
-            this.roundTenSecPreviewButton.Text = "▶";
-            this.roundTenSecPreviewButton.UseVisualStyleBackColor = true;
-            this.roundTenSecPreviewButton.Click += new System.EventHandler(this.roundTenSecPreviewButton_Click);
+            roundTenSecPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            roundTenSecPreviewButton.Location = new System.Drawing.Point(82, 81);
+            roundTenSecPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            roundTenSecPreviewButton.Name = "roundTenSecPreviewButton";
+            roundTenSecPreviewButton.Size = new System.Drawing.Size(26, 31);
+            roundTenSecPreviewButton.TabIndex = 2;
+            roundTenSecPreviewButton.Text = "▶";
+            roundTenSecPreviewButton.UseVisualStyleBackColor = true;
+            roundTenSecPreviewButton.Click += roundTenSecPreviewButton_Click;
             // 
             // roundTenSecTextBox
             // 
-            this.roundTenSecTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.roundTenSecTextBox.Location = new System.Drawing.Point(98, 61);
-            this.roundTenSecTextBox.Name = "roundTenSecTextBox";
-            this.roundTenSecTextBox.Size = new System.Drawing.Size(131, 23);
-            this.roundTenSecTextBox.TabIndex = 2;
+            roundTenSecTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            roundTenSecTextBox.Location = new System.Drawing.Point(112, 68);
+            roundTenSecTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            roundTenSecTextBox.Name = "roundTenSecTextBox";
+            roundTenSecTextBox.Size = new System.Drawing.Size(149, 27);
+            roundTenSecTextBox.TabIndex = 2;
             // 
             // mainMenuGroupBox
             // 
-            this.mainMenuGroupBox.Controls.Add(this.label10);
-            this.mainMenuGroupBox.Controls.Add(this.menuStartTextBox);
-            this.mainMenuGroupBox.Controls.Add(this.menuTrackBar);
-            this.mainMenuGroupBox.Controls.Add(this.menuButton);
-            this.mainMenuGroupBox.Controls.Add(this.menuPreviewButton);
-            this.mainMenuGroupBox.Controls.Add(this.menuTextBox);
-            this.mainMenuGroupBox.Location = new System.Drawing.Point(134, 433);
-            this.mainMenuGroupBox.Name = "mainMenuGroupBox";
-            this.mainMenuGroupBox.Size = new System.Drawing.Size(235, 90);
-            this.mainMenuGroupBox.TabIndex = 17;
-            this.mainMenuGroupBox.TabStop = false;
-            this.mainMenuGroupBox.Text = "Main Menu:";
+            mainMenuGroupBox.Controls.Add(label10);
+            mainMenuGroupBox.Controls.Add(menuStartTextBox);
+            mainMenuGroupBox.Controls.Add(menuTrackBar);
+            mainMenuGroupBox.Controls.Add(menuButton);
+            mainMenuGroupBox.Controls.Add(menuPreviewButton);
+            mainMenuGroupBox.Controls.Add(menuTextBox);
+            mainMenuGroupBox.Location = new System.Drawing.Point(153, 577);
+            mainMenuGroupBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            mainMenuGroupBox.Name = "mainMenuGroupBox";
+            mainMenuGroupBox.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            mainMenuGroupBox.Size = new System.Drawing.Size(269, 120);
+            mainMenuGroupBox.TabIndex = 17;
+            mainMenuGroupBox.TabStop = false;
+            mainMenuGroupBox.Text = "Main Menu:";
             // 
             // label10
             // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(6, 19);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(49, 15);
-            this.label10.TabIndex = 6;
-            this.label10.Text = "Start At:";
+            label10.AutoSize = true;
+            label10.Location = new System.Drawing.Point(7, 25);
+            label10.Name = "label10";
+            label10.Size = new System.Drawing.Size(62, 20);
+            label10.TabIndex = 6;
+            label10.Text = "Start At:";
             // 
             // menuStartTextBox
             // 
-            this.menuStartTextBox.Location = new System.Drawing.Point(61, 16);
-            this.menuStartTextBox.Name = "menuStartTextBox";
-            this.menuStartTextBox.PlaceholderText = "Seconds";
-            this.menuStartTextBox.Size = new System.Drawing.Size(55, 23);
-            this.menuStartTextBox.TabIndex = 5;
-            this.menuStartTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.menuStartTextBox_KeyPress);
+            menuStartTextBox.Location = new System.Drawing.Point(70, 21);
+            menuStartTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            menuStartTextBox.Name = "menuStartTextBox";
+            menuStartTextBox.PlaceholderText = "Seconds";
+            menuStartTextBox.Size = new System.Drawing.Size(62, 27);
+            menuStartTextBox.TabIndex = 5;
+            menuStartTextBox.KeyPress += menuStartTextBox_KeyPress;
             // 
             // menuTrackBar
             // 
-            this.menuTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.menuTrackBar.AutoSize = false;
-            this.menuTrackBar.LargeChange = 10;
-            this.menuTrackBar.Location = new System.Drawing.Point(6, 37);
-            this.menuTrackBar.Maximum = 100;
-            this.menuTrackBar.Name = "menuTrackBar";
-            this.menuTrackBar.Size = new System.Drawing.Size(223, 24);
-            this.menuTrackBar.SmallChange = 5;
-            this.menuTrackBar.TabIndex = 3;
-            this.menuTrackBar.Tag = "";
-            this.menuTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.menuTrackBar.Value = 100;
+            menuTrackBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            menuTrackBar.AutoSize = false;
+            menuTrackBar.LargeChange = 10;
+            menuTrackBar.Location = new System.Drawing.Point(7, 49);
+            menuTrackBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            menuTrackBar.Maximum = 100;
+            menuTrackBar.Name = "menuTrackBar";
+            menuTrackBar.Size = new System.Drawing.Size(255, 32);
+            menuTrackBar.SmallChange = 5;
+            menuTrackBar.TabIndex = 3;
+            menuTrackBar.Tag = "";
+            menuTrackBar.TickStyle = System.Windows.Forms.TickStyle.None;
+            menuTrackBar.Value = 100;
             // 
             // menuButton
             // 
-            this.menuButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.menuButton.Location = new System.Drawing.Point(6, 61);
-            this.menuButton.Name = "menuButton";
-            this.menuButton.Size = new System.Drawing.Size(75, 23);
-            this.menuButton.TabIndex = 1;
-            this.menuButton.Text = "Browse";
-            this.menuButton.UseVisualStyleBackColor = true;
-            this.menuButton.Click += new System.EventHandler(this.menuButton_Click);
+            menuButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            menuButton.Location = new System.Drawing.Point(7, 81);
+            menuButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            menuButton.Name = "menuButton";
+            menuButton.Size = new System.Drawing.Size(86, 31);
+            menuButton.TabIndex = 1;
+            menuButton.Text = "Browse";
+            menuButton.UseVisualStyleBackColor = true;
+            menuButton.Click += menuButton_Click;
             // 
             // menuPreviewButton
             // 
-            this.menuPreviewButton = new System.Windows.Forms.Button();
-            this.menuPreviewButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.menuPreviewButton.Location = new System.Drawing.Point(72, 61);
-            this.menuPreviewButton.Name = "menuPreviewButton";
-            this.menuPreviewButton.Size = new System.Drawing.Size(23, 23);
-            this.menuPreviewButton.TabIndex = 2;
-            this.menuPreviewButton.Text = "▶";
-            this.menuPreviewButton.UseVisualStyleBackColor = true;
-            this.menuPreviewButton.Click += new System.EventHandler(this.menuPreviewButton_Click);
+            menuPreviewButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            menuPreviewButton.Location = new System.Drawing.Point(82, 81);
+            menuPreviewButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            menuPreviewButton.Name = "menuPreviewButton";
+            menuPreviewButton.Size = new System.Drawing.Size(26, 31);
+            menuPreviewButton.TabIndex = 2;
+            menuPreviewButton.Text = "▶";
+            menuPreviewButton.UseVisualStyleBackColor = true;
+            menuPreviewButton.Click += menuPreviewButton_Click;
             // 
             // menuTextBox
             // 
-            this.menuTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.menuTextBox.Location = new System.Drawing.Point(98, 61);
-            this.menuTextBox.Name = "menuTextBox";
-            this.menuTextBox.Size = new System.Drawing.Size(131, 23);
-            this.menuTextBox.TabIndex = 2;
-            this.menuTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            menuTextBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            menuTextBox.Location = new System.Drawing.Point(112, 68);
+            menuTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            menuTextBox.Name = "menuTextBox";
+            menuTextBox.Size = new System.Drawing.Size(149, 27);
+            menuTextBox.TabIndex = 2;
+            menuTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // MusicSelector
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(500, 526);
-            this.Controls.Add(this.mainMenuGroupBox);
-            this.Controls.Add(this.roundTenSecBox);
-            this.Controls.Add(this.bombTenSecBox1);
-            this.Controls.Add(this.MVPGroup);
-            this.Controls.Add(this.deleteButton);
-            this.Controls.Add(this.lostGroup);
-            this.Controls.Add(this.cancelButton);
-            this.Controls.Add(this.wonGroup);
-            this.Controls.Add(this.saveButton);
-            this.Controls.Add(this.bombGroup);
-            this.Controls.Add(this.startGroup);
-            this.Controls.Add(this.freezeGroup);
-            this.Controls.Add(this.nameTextBox);
-            this.Controls.Add(this.label2);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "MusicSelector";
-            this.Text = "Music Selector";
-            this.Load += new System.EventHandler(this.MusicSelector_Load);
-            this.freezeGroup.ResumeLayout(false);
-            this.freezeGroup.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.freezeTrackBar)).EndInit();
-            this.startGroup.ResumeLayout(false);
-            this.startGroup.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.startTrackBar)).EndInit();
-            this.MVPGroup.ResumeLayout(false);
-            this.MVPGroup.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MVPTrackBar)).EndInit();
-            this.lostGroup.ResumeLayout(false);
-            this.lostGroup.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.lostTrackBar)).EndInit();
-            this.wonGroup.ResumeLayout(false);
-            this.wonGroup.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.wonTrackBar)).EndInit();
-            this.bombGroup.ResumeLayout(false);
-            this.bombGroup.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bombTrackBar)).EndInit();
-            this.bombTenSecBox1.ResumeLayout(false);
-            this.bombTenSecBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bombTenSecTrackBar)).EndInit();
-            this.roundTenSecBox.ResumeLayout(false);
-            this.roundTenSecBox.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.roundTenSecTrackBar)).EndInit();
-            this.mainMenuGroupBox.ResumeLayout(false);
-            this.mainMenuGroupBox.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.menuTrackBar)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(571, 701);
+            Controls.Add(mainMenuGroupBox);
+            Controls.Add(roundTenSecBox);
+            Controls.Add(bombTenSecBox1);
+            Controls.Add(MVPGroup);
+            Controls.Add(deleteButton);
+            Controls.Add(lostGroup);
+            Controls.Add(cancelButton);
+            Controls.Add(wonGroup);
+            Controls.Add(saveButton);
+            Controls.Add(bombGroup);
+            Controls.Add(startGroup);
+            Controls.Add(freezeGroup);
+            Controls.Add(nameTextBox);
+            Controls.Add(label2);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            Name = "MusicSelector";
+            Text = "Music Selector";
+            Load += MusicSelector_Load;
+            freezeGroup.ResumeLayout(false);
+            freezeGroup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)freezeTrackBar).EndInit();
+            startGroup.ResumeLayout(false);
+            startGroup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)startTrackBar).EndInit();
+            MVPGroup.ResumeLayout(false);
+            MVPGroup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)MVPTrackBar).EndInit();
+            lostGroup.ResumeLayout(false);
+            lostGroup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)lostTrackBar).EndInit();
+            wonGroup.ResumeLayout(false);
+            wonGroup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)wonTrackBar).EndInit();
+            bombGroup.ResumeLayout(false);
+            bombGroup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)bombTrackBar).EndInit();
+            bombTenSecBox1.ResumeLayout(false);
+            bombTenSecBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)bombTenSecTrackBar).EndInit();
+            roundTenSecBox.ResumeLayout(false);
+            roundTenSecBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)roundTenSecTrackBar).EndInit();
+            mainMenuGroupBox.ResumeLayout(false);
+            mainMenuGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)menuTrackBar).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 

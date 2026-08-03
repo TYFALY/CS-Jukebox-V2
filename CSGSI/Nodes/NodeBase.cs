@@ -53,7 +53,18 @@ namespace CSGSI.Nodes
         internal T GetEnum<T>(string name)
         {
             string value = (_data[name]?.ToString().Replace(" ", String.Empty).Replace("_", string.Empty) ?? "Undefined");
-            return (T)Enum.Parse(typeof(T), value, true);
+            try
+            {
+                object parsed = Enum.Parse(typeof(T), value, true);
+                if (Enum.IsDefined(typeof(T), parsed))
+                    return (T)parsed;
+            }
+            catch (Exception)
+            {
+                // Unknown values are treated as the zero-valued Undefined member.
+            }
+
+            return (T)Enum.ToObject(typeof(T), 0);
         }
 
         internal bool GetBool(string name)
@@ -73,10 +84,20 @@ namespace CSGSI.Nodes
 
         internal float GetFloat(string name)
         {
-            if (float.TryParse(_data[name]?.ToString() ?? "-1", NumberStyles.Any, CultureInfo.InvariantCulture, out float value))
+            JToken token = _data?[name];
+            if (token == null)
+                return -1;
+
+            // Avoid converting numeric tokens through a culture-formatted
+            // string (for example, 9.8 becoming "9,8" on some systems).
+            if (token.Type == JTokenType.Float || token.Type == JTokenType.Integer)
             {
-                return value;
+                try { return token.Value<float>(); }
+                catch (Exception) { return -1; }
             }
+
+            if (float.TryParse(token.Value<string>(), NumberStyles.Float, CultureInfo.InvariantCulture, out float value))
+                return value;
 
             return -1;
         }

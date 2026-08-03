@@ -14,12 +14,15 @@ namespace CS_Jukebox
     public partial class GamePathForm : Form
     {
         private bool dirValid = false;
+        private string resolvedGameDirectory;
 
         public GamePathForm()
         {
             InitializeComponent();
             MaximizeBox = false;
             MinimizeBox = false;
+            if (!string.IsNullOrWhiteSpace(Properties.GameDir))
+                dirTextBox.Text = Properties.GameDir;
         }
 
         //Open folder browser dialog
@@ -36,10 +39,7 @@ namespace CS_Jukebox
         // a legacy csgo.exe file.
         private bool CheckDir(string path)
         {
-            if (!GameInstallLocator.TryResolveGameDirectory(path, out string gameDirectory)) return false;
-
-            Properties.GameDir = gameDirectory;
-            return true;
+            return GameInstallLocator.TryResolveGameDirectory(path, out resolvedGameDirectory);
         }
 
         //Saves the directory if it is valid.
@@ -47,6 +47,7 @@ namespace CS_Jukebox
         {
             if (dirValid)
             {
+                Properties.GameDir = resolvedGameDirectory;
                 Properties.SaveProperties();
                 Close();
             }
@@ -64,7 +65,7 @@ namespace CS_Jukebox
             }
             else
             {
-                Properties.GameDir = null;
+                resolvedGameDirectory = null;
                 errorLabel.Visible = true;
                 okButton.Enabled = false;
             }
