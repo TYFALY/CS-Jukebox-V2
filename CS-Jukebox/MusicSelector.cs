@@ -255,7 +255,7 @@ namespace CS_Jukebox
         private void saveButton_Click(object sender, EventArgs e)
         {
             string kitName = nameTextBox.Text.Trim();
-            if (!Properties.TryValidateKitName(kitName, createMode ? null : currentKit, out string nameError))
+            if (!Properties.TryValidateKitName(kitName, createMode ? null : originalKit, out string nameError))
             {
                 MessageBox.Show(nameError, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
