@@ -19,6 +19,7 @@ namespace CS_Jukebox
         private CancellationTokenSource fadeCts;
         private bool previewMode;
         private float playbackNormalizationGain = 1f;
+        private float lastAppliedVolume = -1f;
 
         private bool isPlaying = false;
         private long scheduledStopAtMilliseconds;
@@ -43,8 +44,7 @@ namespace CS_Jukebox
             CancelFadeInternal();
             previewMode = false;
             currentSong = song;
-            playbackNormalizationGain = GetNormalizationSnapshot(currentSong);
-            BeginNormalization(currentSong);
+            playbackNormalizationGain = PrepareNormalization(currentSong);
 
             lock (lockObj)
             {
@@ -59,6 +59,7 @@ namespace CS_Jukebox
                     // AudioFileReader may be read by WaveOutEvent.Init, so set
                     // the effective volume before initializing the output buffer.
                     afr.Volume = CalculateEffectiveVolume();
+                    lastAppliedVolume = afr.Volume;
 
                     WaveStream ws = afr;
                     if (loop)
@@ -70,10 +71,12 @@ namespace CS_Jukebox
                     outputDevice = new WaveOutEvent();
                     outputDevice.Init(waveStream);
                     outputDevice.Play();
+                    songTimer.Start();
                 }
-                catch
+                catch (Exception ex)
                 {
                     CleanupOutput();
+                    Console.WriteLine("Audio playback failed: " + ex.Message);
                 }
             }
         }
@@ -86,8 +89,7 @@ namespace CS_Jukebox
             CancelFadeInternal();
             previewMode = true;
             currentSong = song;
-            playbackNormalizationGain = GetNormalizationSnapshot(currentSong);
-            BeginNormalization(currentSong);
+            playbackNormalizationGain = PrepareNormalization(currentSong);
 
             lock (lockObj)
             {
@@ -98,15 +100,18 @@ namespace CS_Jukebox
                     if (currentSong.Start > 0)
                         afr.CurrentTime = TimeSpan.FromSeconds(Math.Min(currentSong.Start, afr.TotalTime.TotalSeconds));
                     afr.Volume = CalculateEffectiveVolume();
+                    lastAppliedVolume = afr.Volume;
 
                     waveStream = afr;
                     outputDevice = new WaveOutEvent();
                     outputDevice.Init(waveStream);
                     outputDevice.Play();
+                    songTimer.Start();
                 }
-                catch
+                catch (Exception ex)
                 {
                     CleanupOutput();
+                    throw new InvalidOperationException("The selected audio file could not be played.", ex);
                 }
             }
         }
@@ -139,12 +144,25 @@ namespace CS_Jukebox
         {
             lock (lockObj)
             {
-                if (currentSong == null || fadeCts != null) return;
+                if (currentSong == null || waveStream == null || outputDevice == null || fadeCts != null) return;
 
                 float master = (float)Properties.MasterVolume / 100f;
                 float songVol = (float)currentSong.Volume / 100f;
                 float focus = previewMode || IsGameFocused() ? 1f : 0f;
-                ApplyReaderVolume(Math.Clamp(master * songVol * playbackNormalizationGain * focus, 0f, 1f));
+                float effectiveVolume = Math.Clamp(master * songVol * playbackNormalizationGain * focus, 0f, 1f);
+                if (Math.Abs(effectiveVolume - lastAppliedVolume) > 0.0001f)
+                    ApplyReaderVolume(effectiveVolume);
+            }
+        }
+
+        public void UpdatePreviewVolume(int volume)
+        {
+            lock (lockObj)
+            {
+                if (!previewMode || currentSong == null || fadeCts != null) return;
+
+                currentSong.Volume = Math.Clamp(volume, 0, 100);
+                ApplyReaderVolume(CalculateEffectiveVolume());
             }
         }
 
@@ -160,14 +178,30 @@ namespace CS_Jukebox
         private void ApplyReaderVolume(float volume)
         {
             if (waveStream is AudioFileReader reader)
+            {
                 reader.Volume = volume;
+                lastAppliedVolume = volume;
+            }
             else if (waveStream is LoopStream loop && loop.Source is AudioFileReader loopReader)
+            {
                 loopReader.Volume = volume;
+                lastAppliedVolume = volume;
+            }
         }
 
-        private static float GetNormalizationSnapshot(SongProfile song)
+        private static float PrepareNormalization(SongProfile song)
         {
-            return song?.NormalizationGain > 0f ? song.NormalizationGain : 1f;
+            if (song == null) return 1f;
+            if (song.NormalizationGain > 0f) return song.NormalizationGain;
+
+            if (AudioUtils.TryGetCachedNormalizationGain(song.Path, out float cachedGain))
+            {
+                song.NormalizationGain = cachedGain;
+                return cachedGain;
+            }
+
+            BeginNormalization(song);
+            return 1f;
         }
 
         // Stops the current track with a smooth fade.
@@ -271,21 +305,26 @@ namespace CS_Jukebox
 
             song.NormalizationGain = 1f;
             string path = song.Path;
-            _ = Task.Run(() => AudioUtils.CalculateNormalizationGain(path))
-                .ContinueWith(task =>
-                {
-                    if (task.Status == TaskStatus.RanToCompletion)
-                        song.NormalizationGain = task.Result;
-                });
+            Task<float> calculation = AudioUtils.GetNormalizationGainAsync(path);
+            if (calculation.IsCompletedSuccessfully)
+            {
+                song.NormalizationGain = calculation.Result;
+                return;
+            }
+
+            _ = calculation.ContinueWith(task => song.NormalizationGain = task.Result,
+                CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
         }
 
         private void CleanupOutput()
         {
+            songTimer?.Stop();
             try { outputDevice?.Stop(); } catch { }
             try { outputDevice?.Dispose(); } catch { }
             outputDevice = null;
             try { waveStream?.Dispose(); } catch { }
             waveStream = null;
+            lastAppliedVolume = -1f;
         }
 
         private void SetupTimer()
@@ -293,11 +332,26 @@ namespace CS_Jukebox
             songTimer = new System.Windows.Forms.Timer();
             songTimer.Interval = 100;
             songTimer.Tick += new EventHandler(TimerTick);
-            songTimer.Start();
         }
 
         private void TimerTick(object sender, EventArgs e)
         {
+            if (waveStream == null || outputDevice == null)
+            {
+                songTimer.Stop();
+                return;
+            }
+
+            if (outputDevice.PlaybackState == PlaybackState.Stopped && fadeCts == null)
+            {
+                CancelScheduledStopInternal();
+                lock (lockObj)
+                {
+                    CleanupOutput();
+                }
+                return;
+            }
+
             if (isPlaying && Environment.TickCount64 >= scheduledStopAtMilliseconds)
             {
                 _ = StopSongAsync();
@@ -331,10 +385,12 @@ namespace CS_Jukebox
         private class LoopStream : WaveStream
         {
             public WaveStream Source { get; }
+            private readonly long loopStartPosition;
 
             public LoopStream(WaveStream source)
             {
                 Source = source;
+                loopStartPosition = source.Position;
             }
 
             public override WaveFormat WaveFormat => Source.WaveFormat;
@@ -350,18 +406,23 @@ namespace CS_Jukebox
             public override int Read(byte[] buffer, int offset, int count)
             {
                 int total = 0;
+                bool rewoundWithoutReading = false;
                 while (total < count)
                 {
                     int read = Source.Read(buffer, offset + total, count - total);
                     if (read == 0)
                     {
-                        // loop
-                        if (Source.CanSeek)
-                            Source.Position = 0;
-                        else
+                        if (!Source.CanSeek || rewoundWithoutReading)
                             break;
+
+                        Source.Position = loopStartPosition;
+                        rewoundWithoutReading = true;
                     }
-                    else total += read;
+                    else
+                    {
+                        total += read;
+                        rewoundWithoutReading = false;
+                    }
                 }
                 return total;
             }
