@@ -28,5 +28,23 @@ namespace CS_Jukebox
             Volume = volume;
             NormalizationGain = -1f;
         }
+
+        public SongProfile Clone()
+        {
+            return new SongProfile(Path, Volume)
+            {
+                Start = Start,
+                NormalizationGain = NormalizationGain
+            };
+        }
+
+        public void EnsureValid()
+        {
+            Path ??= "";
+            Volume = Math.Clamp(Volume, 0, 100);
+            Start = Math.Max(Start, 0);
+            if (float.IsNaN(NormalizationGain) || float.IsInfinity(NormalizationGain) || NormalizationGain == 0f)
+                NormalizationGain = -1f;
+        }
     }
 }

@@ -1,43 +1,50 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using CSGSI;
 using CSGSI.Nodes;
 
 namespace CS_Jukebox
 {
-    class GameLogic
+    class GameLogic : IDisposable
     {
         public Jukebox jukebox;
 
         private GameStateListener gsl;
         private MusicState musicState = MusicState.None;
-        private int playerMVPs = 0;
-        private int roundTime = 115;
-        private int bombTime = 45;
-        private int currentRoundTime = 0;
-        private int currentBombTime = 0;
+        private int playerMVPs = -1;
+        private readonly SynchronizationContext uiContext;
+        private bool roundTenSecondPlayed;
+        private bool bombTenSecondPlayed;
+        private bool stopped;
+        private int lastKnownPlayerHealth = -1;
 
         public GameLogic()
         {
+            uiContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
             jukebox = new Jukebox();
-            StartGameListener();
-            SetupTimer();
+            try
+            {
+                StartGameListener();
+            }
+            catch
+            {
+                jukebox.Dispose();
+                throw;
+            }
         }
 
         void StartGameListener()
         {
             gsl = new GameStateListener(3010);
-            gsl.NewGameState += new NewGameStateHandler(OnNewGameState);
+            gsl.NewGameState += new NewGameStateHandler(OnGameStateReceived);
 
             if (!gsl.Start())
             {
                 Console.WriteLine("Game State Listener failed to start.");
-                MessageBox.Show("Game State Listener failed to start. A restart may be required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Environment.Exit(1);
+                throw new InvalidOperationException(
+                    "The Game State Integration listener could not start on port 3010. " +
+                    "Close another CS Jukebox instance or any application using this port, then try again.");
             }
             else
             {
@@ -47,33 +54,53 @@ namespace CS_Jukebox
 
         public void Stop()
         {
+            if (stopped) return;
+            stopped = true;
             Console.WriteLine("Stopping Game Listener");
-            gsl.Stop();
+            if (gsl != null)
+            {
+                gsl.NewGameState -= new NewGameStateHandler(OnGameStateReceived);
+                gsl.Stop();
+            }
+            jukebox?.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Stop();
+        }
+
+        private void OnGameStateReceived(GameState gs)
+        {
+            if (stopped) return;
+            uiContext.Post(_ =>
+            {
+                if (!stopped) OnNewGameState(gs);
+            }, null);
         }
 
         void OnNewGameState(GameState gs)
         {
             if (Properties.SelectedKit == null) return;
 
+            int currentMvpCount = gs.Player.MatchStats.MVPs;
+            if (currentMvpCount >= 0 && (playerMVPs < 0 || currentMvpCount < playerMVPs))
+                playerMVPs = currentMvpCount;
+
             if (gs.Map.JSON.Equals("{}") && musicState != MusicState.Menu)
             {
                 musicState = MusicState.Menu;
-                playerMVPs = 0;
+                playerMVPs = -1;
                 jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.mainMenuSong, Properties.SelectedKit.mainMenuSongs), true);
                 Console.WriteLine("Main Menu");
             }
 
             if (gs.Round.Phase == RoundPhase.FreezeTime && musicState != MusicState.FreezeTime)
             {
-                if (musicState == MusicState.Menu)
-                {
-                    JoinedGame(gs);
-                }
-
                 musicState = MusicState.FreezeTime;
                 jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.freezeSong, Properties.SelectedKit.freezeSongs), false);
-                currentRoundTime = 0;
-                currentBombTime = 0;
+                roundTenSecondPlayed = false;
+                bombTenSecondPlayed = false;
                 Console.WriteLine("FreezeTime Begun");
             }
 
@@ -99,6 +126,8 @@ namespace CS_Jukebox
 
             }
 
+            HandlePlayerDeath(gs);
+
             if (gs.Round.Phase == RoundPhase.Over && musicState != MusicState.Over)
             {
                 musicState = MusicState.Over;
@@ -121,28 +150,93 @@ namespace CS_Jukebox
             if (gs.Round.Bomb == BombState.Planted && musicState != MusicState.BombPlanted)
             {
                 musicState = MusicState.BombPlanted;
+                bombTenSecondPlayed = false;
                 jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombSong, Properties.SelectedKit.bombSongs), false);
                 Console.WriteLine("Bomb Planted");
             }
+
+            HandleTenSecondCues(gs);
         }
 
-        private void JoinedGame(GameState gs)
+        private void HandlePlayerDeath(GameState gs)
         {
-            switch (gs.Map.Mode)
+            int currentHealth = gs.Player.State.Health;
+            bool diedNow = IsLocalPlayerDeath(gs, lastKnownPlayerHealth);
+
+            if (currentHealth >= 0)
+                lastKnownPlayerHealth = currentHealth;
+
+            if (!diedNow) return;
+
+            Console.WriteLine("Local player died");
+            jukebox.PlaySong(
+                Properties.SelectedKit.PickSong(Properties.SelectedKit.deathSong, Properties.SelectedKit.deathSongs),
+                false,
+                5);
+        }
+
+        internal static bool IsLocalPlayerDeath(GameState gs, int lastKnownHealth)
+        {
+            int currentHealth = gs.Player.State.Health;
+            int previousHealth = gs.Previously.Player.State.Health;
+            string providerSteamId = gs.Provider.SteamID;
+            string playerSteamId = gs.Player.SteamID;
+
+            bool isLocalPlayer = string.IsNullOrWhiteSpace(providerSteamId) ||
+                string.IsNullOrWhiteSpace(playerSteamId) ||
+                string.Equals(providerSteamId, playerSteamId, StringComparison.Ordinal);
+
+            return isLocalPlayer &&
+                currentHealth == 0 &&
+                (previousHealth > 0 || lastKnownHealth > 0) &&
+                gs.Map.Phase == MapPhase.Live &&
+                gs.Round.Phase == RoundPhase.Live;
+        }
+
+        private void HandleTenSecondCues(GameState gs)
+        {
+            PhaseCountdownsPhase cue = GetTenSecondCue(gs);
+
+            if (cue == PhaseCountdownsPhase.Live && !roundTenSecondPlayed)
             {
-                case MapMode.Casual:
-                    roundTime = 120;
-                    bombTime = 45;
-                    break;
-                case MapMode.Competitive:
-                    roundTime = 115;
-                    bombTime = 40;
-                    break;
-                default:
-                    roundTime = 120;
-                    bombTime = 45;
-                    break;
+                roundTenSecondPlayed = true;
+                Console.WriteLine("Ten seconds left in round");
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.roundTenSecSong, Properties.SelectedKit.roundTenSecSongs), false);
             }
+            else if (cue == PhaseCountdownsPhase.Bomb && !bombTenSecondPlayed)
+            {
+                bombTenSecondPlayed = true;
+                Console.WriteLine("Ten seconds left on bomb");
+                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false);
+            }
+        }
+
+        internal static PhaseCountdownsPhase GetTenSecondCue(GameState gs)
+        {
+            PhaseCountdownsNode countdown = gs.PhaseCountdowns;
+            float remaining = countdown.PhaseEndsIn;
+            if (float.IsNaN(remaining) || float.IsInfinity(remaining) || remaining <= 0f || remaining > 10f)
+                return PhaseCountdownsPhase.Undefined;
+
+            // phase_countdowns is the authoritative GSI clock. Do not gate
+            // this cue on musicState: that is playback state and can lag or
+            // differ after joining a round already in progress.
+            if (countdown.Phase == PhaseCountdownsPhase.Live ||
+                (countdown.Phase == PhaseCountdownsPhase.Undefined &&
+                 gs.Round.Phase == RoundPhase.Live &&
+                 gs.Round.Bomb != BombState.Planted))
+            {
+                return PhaseCountdownsPhase.Live;
+            }
+
+            if (countdown.Phase == PhaseCountdownsPhase.Bomb ||
+                (countdown.Phase == PhaseCountdownsPhase.Undefined &&
+                 gs.Round.Bomb == BombState.Planted))
+            {
+                return PhaseCountdownsPhase.Bomb;
+            }
+
+            return PhaseCountdownsPhase.Undefined;
         }
 
         private void RoundWin(GameState gs)
@@ -159,37 +253,6 @@ namespace CS_Jukebox
             }
         }
 
-        private void SetupTimer()
-        {
-            Timer timer = new Timer();
-            timer.Interval = 1000;
-            timer.Tick += new EventHandler(TimerTick);
-            timer.Start();
-        }
-
-        private void TimerTick(object sender, EventArgs e)
-        {
-            if (musicState == MusicState.Live)
-            {
-                currentRoundTime++;
-
-                if (roundTime - currentRoundTime == 10)
-                {
-                    Console.WriteLine("Ten Seconds left on round");
-                    jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.roundTenSecSong, Properties.SelectedKit.roundTenSecSongs), false);
-                }
-            }
-            else if (musicState == MusicState.BombPlanted)
-            {
-                currentBombTime++;
-
-                if (bombTime - currentBombTime == 10)
-                {
-                    Console.WriteLine("Ten Seconds left on bomb");
-                    jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false);
-                }
-            }
-        }
     }
 
     public enum MusicState
