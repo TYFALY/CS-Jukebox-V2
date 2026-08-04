@@ -99,6 +99,28 @@ namespace CS_Jukebox
             this.editButton.UseVisualStyleBackColor = true;
             this.editButton.Click += new System.EventHandler(this.editButton_Click);
             // 
+            // exportButton
+            // 
+            this.exportButton = new System.Windows.Forms.Button();
+            this.exportButton.Location = new System.Drawing.Point(12, 72);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(121, 23);
+            this.exportButton.TabIndex = 8;
+            this.exportButton.Text = "Export Kit...";
+            this.exportButton.UseVisualStyleBackColor = true;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
+            // 
+            // importButton
+            // 
+            this.importButton = new System.Windows.Forms.Button();
+            this.importButton.Location = new System.Drawing.Point(139, 72);
+            this.importButton.Name = "importButton";
+            this.importButton.Size = new System.Drawing.Size(134, 23);
+            this.importButton.TabIndex = 9;
+            this.importButton.Text = "Import Kit...";
+            this.importButton.UseVisualStyleBackColor = true;
+            this.importButton.Click += new System.EventHandler(this.importButton_Click);
+            // 
             // notifyIcon
             // 
             this.notifyIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
@@ -124,6 +146,8 @@ namespace CS_Jukebox
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(285, 135);
             this.Controls.Add(this.autoCheckBox);
+            this.Controls.Add(this.importButton);
+            this.Controls.Add(this.exportButton);
             this.Controls.Add(this.editButton);
             this.Controls.Add(this.directoryButton);
             this.Controls.Add(this.addButton);
@@ -144,6 +168,8 @@ namespace CS_Jukebox
         #endregion
         private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.Button exportButton;
+        private System.Windows.Forms.Button importButton;
         private System.Windows.Forms.ComboBox musicComboBox;
         private System.Windows.Forms.Button addButton;
         private System.Windows.Forms.Button directoryButton;

@@ -25,11 +25,41 @@ namespace CS_Jukebox
             //AllocConsole(); //Enable console
             MaximizeBox = false;
 
+            // Use default system theme (no custom theming applied)
+
             Properties.Load();
-            
-            //If game directory is not set, create
-            //popup so that user can browse to it.
-            if (Properties.GameDir == null)
+
+            // If GameDir is missing or invalid, attempt auto-detection of CS2 install.
+            bool gameDirValid = false;
+            if (!string.IsNullOrWhiteSpace(Properties.GameDir))
+            {
+                gameDirValid = GameInstallLocator.TryResolveGameDirectory(Properties.GameDir, out string resolved) && !string.IsNullOrWhiteSpace(resolved);
+                if (gameDirValid)
+                {
+                    // normalize to resolved path
+                    Properties.GameDir = resolved;
+                }
+            }
+
+            if (!gameDirValid)
+            {
+                try
+                {
+                    string detected = GameInstallLocator.AutoDetectCS2Path();
+                    if (!string.IsNullOrWhiteSpace(detected) && GameInstallLocator.TryResolveGameDirectory(detected, out string resolvedDetected))
+                    {
+                        Properties.GameDir = resolvedDetected;
+                        Properties.SaveProperties();
+                        // create config silently
+                        try { Properties.CreateConfig(); } catch { }
+                        gameDirValid = true;
+                    }
+                }
+                catch { }
+            }
+
+            //If still not valid, prompt user to select it
+            if (!gameDirValid)
             {
                 Form dirPopup = new GamePathForm();
                 dirPopup.Location = this.Location;
@@ -398,6 +428,50 @@ namespace CS_Jukebox
         private void autoCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             RegisterInStartup(autoCheckBox.Checked);
+        }
+
+        private void exportButton_Click(object sender, EventArgs e)
+        {
+            if (Properties.SelectedKit == null)
+            {
+                MessageBox.Show("No music kit selected to export.", "Export Kit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var sfd = new SaveFileDialog();
+            sfd.Filter = "Zip Archive|*.zip";
+            sfd.FileName = ToSafeKitName(Properties.SelectedKit.Name) + ".zip";
+            if (sfd.ShowDialog(this) == DialogResult.OK)
+            {
+                try
+                {
+                    ExportMusicKit(Properties.SelectedKit, sfd.FileName);
+                    MessageBox.Show("Export completed.", "Export Kit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Export failed: " + ex.Message, "Export Kit", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void importButton_Click(object sender, EventArgs e)
+        {
+            using var ofd = new OpenFileDialog();
+            ofd.Filter = "Zip Archive|*.zip";
+            if (ofd.ShowDialog(this) == DialogResult.OK)
+            {
+                try
+                {
+                    ImportMusicKit(ofd.FileName);
+                    MessageBox.Show("Import completed.", "Import Kit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    RefreshParameters();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Import failed: " + ex.Message, "Import Kit", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
     }
 }

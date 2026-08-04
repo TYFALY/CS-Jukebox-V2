@@ -1,81 +1,122 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WMPLib;
+using NAudio.Wave;
 
 namespace CS_Jukebox
 {
     public class Jukebox : IDisposable
     {
-        private WindowsMediaPlayer player;
+        private IWavePlayer outputDevice;
+        private WaveStream waveStream;
         private SongProfile currentSong;
 
-        private Timer fadeTimer;
-        private Timer songTimer;
-        private bool isFading = false;
+        private System.Windows.Forms.Timer songTimer;
+        private readonly object lockObj = new object();
+
+        private CancellationTokenSource fadeCts;
         private bool previewMode;
 
         private bool isPlaying = false;
-        private long scheduledStopAtMilliseconds;
-        private float fadeVolume;
-        private float volumeIncrement; //Incremental change in volume when fading out song.
+        private int timerCount = 0;
+        private int timerGoal = 0;
 
         public Jukebox()
         {
-            player = new WindowsMediaPlayer();
-
             SetupTimer();
         }
 
         public void PlaySong(string path)
         {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return;
             PlayPreviewSong(new SongProfile(path, 100));
         }
 
-        //Play song for length or loop indefinitely
+        // Play song for length or loop indefinitely
         public void PlaySong(SongProfile song, bool loop)
         {
-            if (song == null || string.IsNullOrWhiteSpace(song.Path)) return;
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path)) return;
 
-            CancelScheduledStop();
-            CancelFade();
+            CancelScheduledStopInternal();
+            CancelFadeInternal();
             previewMode = false;
             currentSong = song;
 
             BeginNormalization(currentSong);
 
-            UpdateVolume();
-            player.settings.setMode("loop", loop);
-            player.URL = song.Path;
-            player.controls.currentPosition = song.Start;
-            player.controls.play();
+            lock (lockObj)
+            {
+                CleanupOutput();
+
+                try
+                {
+                    var afr = new AudioFileReader(currentSong.Path);
+                    WaveStream ws = afr;
+                    if (loop)
+                    {
+                        ws = new LoopStream(afr);
+                    }
+
+                    waveStream = ws;
+                    outputDevice = new WaveOutEvent();
+                    outputDevice.Init(waveStream);
+
+                    // set start position if provided
+                    if (currentSong.Start > 0 && waveStream is AudioFileReader afr2)
+                    {
+                        afr2.CurrentTime = TimeSpan.FromSeconds(currentSong.Start);
+                    }
+
+                    UpdateVolume();
+                    outputDevice.Play();
+                }
+                catch
+                {
+                    CleanupOutput();
+                }
+            }
         }
 
         public void PlayPreviewSong(SongProfile song)
         {
-            if (song == null || string.IsNullOrWhiteSpace(song.Path)) return;
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path)) return;
 
-            CancelScheduledStop();
-            CancelFade();
+            CancelScheduledStopInternal();
+            CancelFadeInternal();
             previewMode = true;
             currentSong = song;
             BeginNormalization(currentSong);
-            player.settings.setMode("loop", false);
-            UpdateVolume();
-            player.URL = song.Path;
-            player.controls.currentPosition = song.Start;
-            player.controls.play();
+
+            lock (lockObj)
+            {
+                CleanupOutput();
+                try
+                {
+                    var afr = new AudioFileReader(currentSong.Path);
+                    waveStream = afr;
+                    outputDevice = new WaveOutEvent();
+                    outputDevice.Init(waveStream);
+
+                    if (currentSong.Start > 0)
+                        afr.CurrentTime = TimeSpan.FromSeconds(currentSong.Start);
+
+                    UpdateVolume();
+                    outputDevice.Play();
+                }
+                catch
+                {
+                    CleanupOutput();
+                }
+            }
         }
 
         public bool IsPlaybackActive()
         {
             try
             {
-                return player.playState == WMPPlayState.wmppsPlaying ||
-                       player.playState == WMPPlayState.wmppsBuffering ||
-                       player.playState == WMPPlayState.wmppsTransitioning;
+                return outputDevice != null && outputDevice.PlaybackState == PlaybackState.Playing;
             }
             catch
             {
@@ -83,156 +124,156 @@ namespace CS_Jukebox
             }
         }
 
-        //Play song with a determined amount of time in seconds
+        // Play song for a determined amount of time (seconds)
         public void PlaySong(SongProfile song, bool loop, int duration)
         {
-            if (song == null || string.IsNullOrWhiteSpace(song.Path)) return;
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || duration <= 0) return;
             PlaySong(song, loop);
 
-            scheduledStopAtMilliseconds = Environment.TickCount64 + Math.Max(duration, 0) * 1000L;
+            timerCount = 0;
+            timerGoal = duration;
             isPlaying = true;
         }
 
         public void UpdateVolume()
         {
-            if (currentSong == null || isFading) return;
+            lock (lockObj)
+            {
+                if (currentSong == null || fadeCts != null) return;
 
-            // Properties.MasterVolume = 0..100, currentSong.Volume = 0..100
-            float master = (float)Properties.MasterVolume / 100f;
-            float songVol = (float)currentSong.Volume / 100f;
-            float focus = previewMode || IsGameFocused() ? 1f : 0f;
+                float master = (float)Properties.MasterVolume / 100f;
+                float songVol = (float)currentSong.Volume / 100f;
+                float focus = previewMode || IsGameFocused() ? 1f : 0f;
+                float norm = (currentSong.NormalizationGain > 0f) ? currentSong.NormalizationGain : 1f;
 
-            float norm = (currentSong.NormalizationGain > 0f) ? currentSong.NormalizationGain : 1f;
+                float effective = master * songVol * norm * focus;
+                float vol = Math.Clamp(effective, 0f, 1f);
 
-            float effective = master * songVol * norm * focus;
-            int winVol = (int)Math.Clamp(effective * 100f, 0f, 100f);
-            player.settings.volume = winVol;
+                if (waveStream is AudioFileReader afr)
+                {
+                    afr.Volume = vol;
+                }
+                else if (waveStream is LoopStream ls && ls.Source is AudioFileReader afr2)
+                {
+                    afr2.Volume = vol;
+                }
+            }
         }
 
-        //Stops the current track with a smooth fade.
+        // Stops the current track with a smooth fade.
         public void Stop()
         {
-            CancelScheduledStop();
-            // Start fade immediately instead of deferring to the next tick
-            if (!isFading)
-            {
-                StopSong();
-            }
+            CancelScheduledStopInternal();
+            // Start fade immediately
+            _ = StopSongAsync();
         }
 
-        private void CancelScheduledStop()
+        private async Task StopSongAsync()
         {
-            isPlaying = false;
-            scheduledStopAtMilliseconds = 0;
-        }
+            // If already fading, don't start another
+            if (fadeCts != null) return;
 
-        private void CancelFade()
-        {
-            if (fadeTimer != null)
-            {
-                fadeTimer.Stop();
-                fadeTimer.Tick -= new EventHandler(FadeTimerTick);
-                fadeTimer = null;
-            }
-            isFading = false;
-        }
+            var cts = new CancellationTokenSource();
+            fadeCts = cts;
 
-        private void StopSong()
-        {
-            // If already fading, don't start another fade
-            if (isFading) return;
-
-            float fadeDurationSeconds = 1.4f; // safer, smoother fade
-            const int intervalMs = 25; // smooth timer interval
-
-            float startVolume = 0f;
-            try { startVolume = player.settings.volume; } catch { startVolume = 0f; }
-
-            // If volume is already essentially zero, stop immediately
-            if (startVolume <= 1f)
-            {
-                try { player.controls.stop(); } catch { }
-                try { player.settings.volume = 0; } catch { }
-                isPlaying = false;
-                isFading = false;
-                return;
-            }
-
-            isFading = true;
-
-            fadeVolume = startVolume;
-            float steps = (fadeDurationSeconds * 1000f) / intervalMs;
-            volumeIncrement = (steps > 0) ? (startVolume / steps) : startVolume;
-
-            // Ensure any existing fade timer is stopped
-            if (fadeTimer != null)
-            {
-                fadeTimer.Stop();
-                fadeTimer.Tick -= new EventHandler(FadeTimerTick);
-                fadeTimer = null;
-            }
-
-            fadeTimer = new Timer();
-            fadeTimer.Interval = intervalMs;
-            fadeTimer.Tick += new EventHandler(FadeTimerTick);
-            fadeTimer.Start();
-        }
-
-        private void FadeTimerTick(object sender, EventArgs e)
-        {
             try
             {
-                fadeVolume -= volumeIncrement;
+                const int steps = 28;
+                const int intervalMs = 50;
 
-                if (fadeVolume > 1f)
+                for (int i = 0; i < steps; i++)
                 {
-                    player.settings.volume = (int)fadeVolume;
-                }
-                else
-                {
-                    try { player.controls.stop(); } catch { }
-                    try { player.settings.volume = 0; } catch { }
+                    if (cts.IsCancellationRequested) break;
 
-                    if (fadeTimer != null)
+                    lock (lockObj)
                     {
-                        fadeTimer.Stop();
-                        fadeTimer.Tick -= new EventHandler(FadeTimerTick);
-                        fadeTimer = null;
+                        if (waveStream is AudioFileReader afr)
+                        {
+                            afr.Volume = afr.Volume * (1f - (1f / (steps - i + 1)));
+                        }
+                        else if (waveStream is LoopStream ls && ls.Source is AudioFileReader afr2)
+                        {
+                            afr2.Volume = afr2.Volume * (1f - (1f / (steps - i + 1)));
+                        }
                     }
 
-                    isPlaying = false;
-                    isFading = false;
+                    try { await Task.Delay(intervalMs, cts.Token); } catch { break; }
                 }
-            }
-            catch
-            {
-                if (fadeTimer != null)
+
+                lock (lockObj)
                 {
-                    fadeTimer.Stop();
-                    fadeTimer.Tick -= new EventHandler(FadeTimerTick);
-                    fadeTimer = null;
+                    CleanupOutput();
                 }
-                try { player.controls.stop(); } catch { }
-                try { player.settings.volume = 0; } catch { }
-                isPlaying = false;
-                isFading = false;
             }
+            finally
+            {
+                fadeCts = null;
+            }
+        }
+
+        private void CancelScheduledStopInternal()
+        {
+            isPlaying = false;
+            timerCount = 0;
+            timerGoal = 0;
+        }
+
+        private void CancelFadeInternal()
+        {
+            if (fadeCts != null)
+            {
+                try { fadeCts.Cancel(); } catch { }
+                fadeCts = null;
+            }
+        }
+
+        public void StopImmediately()
+        {
+            CancelScheduledStopInternal();
+            CancelFadeInternal();
+            lock (lockObj)
+            {
+                CleanupOutput();
+            }
+        }
+
+        private static void BeginNormalization(SongProfile song)
+        {
+            if (song.NormalizationGain > 0f) return;
+
+            song.NormalizationGain = 1f;
+            string path = song.Path;
+            _ = Task.Run(() => AudioUtils.CalculateNormalizationGain(path))
+                .ContinueWith(task =>
+                {
+                    if (task.Status == TaskStatus.RanToCompletion)
+                        song.NormalizationGain = task.Result;
+                });
+        }
+
+        private void CleanupOutput()
+        {
+            try { outputDevice?.Stop(); } catch { }
+            try { outputDevice?.Dispose(); } catch { }
+            outputDevice = null;
+            try { waveStream?.Dispose(); } catch { }
+            waveStream = null;
         }
 
         private void SetupTimer()
         {
-            songTimer = new Timer();
-            songTimer.Interval = 100;
+            songTimer = new System.Windows.Forms.Timer();
+            songTimer.Interval = 1000; // 1s tick for timers
             songTimer.Tick += new EventHandler(TimerTick);
             songTimer.Start();
         }
 
         private void TimerTick(object sender, EventArgs e)
         {
-            if (isPlaying && Environment.TickCount64 >= scheduledStopAtMilliseconds)
+            if (isPlaying && ++timerCount >= timerGoal)
             {
-                StopSong();
-                CancelScheduledStop();
+                _ = StopSongAsync();
+                CancelScheduledStopInternal();
             }
 
             UpdateVolume();
@@ -250,42 +291,58 @@ namespace CS_Jukebox
             }
         }
 
-        public void StopImmediately()
-        {
-            CancelScheduledStop();
-            CancelFade();
-            try { player.controls.stop(); } catch { }
-            try { player.settings.volume = 0; } catch { }
-        }
-
-        private static void BeginNormalization(SongProfile song)
-        {
-            if (song.NormalizationGain > 0f) return;
-
-            // Decoding audio must not block a game-state callback. Playback
-            // starts at its original level, then uses the cached result.
-            song.NormalizationGain = 1f;
-            string path = song.Path;
-            _ = Task.Run(() => AudioUtils.CalculateNormalizationGain(path))
-                .ContinueWith(task =>
-                {
-                    if (task.Status == TaskStatus.RanToCompletion)
-                        song.NormalizationGain = task.Result;
-                });
-        }
-
         public void Dispose()
         {
             StopImmediately();
             songTimer?.Stop();
             songTimer?.Dispose();
-            fadeTimer?.Dispose();
-            try { player.close(); } catch { }
-            if (player != null && Marshal.IsComObject(player))
+            CleanupOutput();
+        }
+
+        // Simple looping wrapper that uses the supplied source stream
+        private class LoopStream : WaveStream
+        {
+            public WaveStream Source { get; }
+
+            public LoopStream(WaveStream source)
             {
-                try { Marshal.FinalReleaseComObject(player); } catch { }
+                Source = source;
             }
-            player = null;
+
+            public override WaveFormat WaveFormat => Source.WaveFormat;
+
+            public override long Length => long.MaxValue;
+
+            public override long Position
+            {
+                get => Source.Position;
+                set => Source.Position = value;
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                int total = 0;
+                while (total < count)
+                {
+                    int read = Source.Read(buffer, offset + total, count - total);
+                    if (read == 0)
+                    {
+                        // loop
+                        if (Source.CanSeek)
+                            Source.Position = 0;
+                        else
+                            break;
+                    }
+                    else total += read;
+                }
+                return total;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                try { Source.Dispose(); } catch { }
+                base.Dispose(disposing);
+            }
         }
     }
 }
