@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CS_Jukebox
 {
@@ -137,11 +138,6 @@ namespace CS_Jukebox
             }
         }
 
-        private void trackBar1_Scroll(object sender, EventArgs e)
-        {
-            SetMasterVolume();
-        }
-
         private void trackBar1_ValueChanged(object sender, EventArgs e)
         {
             SetMasterVolume();
@@ -155,99 +151,112 @@ namespace CS_Jukebox
 
         // Export a MusicKit and its referenced audio files into a single ZIP archive.
         // outputZipPath: full path to the .zip file to create (will be overwritten if exists)
-        public void ExportMusicKit(MusicKit kit, string outputZipPath)
+        public static void ExportMusicKit(MusicKit kit, string outputZipPath)
         {
             if (kit == null) throw new ArgumentNullException(nameof(kit));
             if (string.IsNullOrWhiteSpace(outputZipPath)) throw new ArgumentNullException(nameof(outputZipPath));
 
-            string tempDir = Path.Combine(Path.GetTempPath(), "CSJukeboxExport_" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(tempDir);
+            string fullOutputPath = Path.GetFullPath(outputZipPath);
+            string outputDirectory = Path.GetDirectoryName(fullOutputPath);
+            if (string.IsNullOrWhiteSpace(outputDirectory))
+                throw new InvalidOperationException("The export directory is invalid.");
 
-            string audioDir = Path.Combine(tempDir, "audio");
-            Directory.CreateDirectory(audioDir);
+            Directory.CreateDirectory(outputDirectory);
+            string temporaryZipPath = Path.Combine(outputDirectory,
+                "." + Path.GetFileName(fullOutputPath) + "." + Guid.NewGuid().ToString("N") + ".tmp");
 
             try
             {
-                // Gather all song profiles referenced by the kit
-                var profiles = GetAllSongProfiles(kit).Where(p => p != null && !string.IsNullOrWhiteSpace(p.Path)).ToList();
-
-                // Map original absolute paths to unique filenames inside archive
                 var nameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var p in profiles)
-                {
-                    try
-                    {
-                        if (!File.Exists(p.Path)) continue;
+                var usedEntryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                        string original = p.Path;
-                        string fileName = Path.GetFileName(original);
+                using (FileStream output = new FileStream(temporaryZipPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (var archive = new ZipArchive(output, ZipArchiveMode.Create))
+                {
+                    foreach (SongProfile profile in GetAllSongProfiles(kit))
+                    {
+                        if (profile == null || string.IsNullOrWhiteSpace(profile.Path) ||
+                            nameMap.ContainsKey(profile.Path) || !File.Exists(profile.Path))
+                        {
+                            continue;
+                        }
+
+                        string fileName = Path.GetFileName(profile.Path);
                         string uniqueName = fileName;
                         int counter = 1;
-                        while (File.Exists(Path.Combine(audioDir, uniqueName)))
+                        while (!usedEntryNames.Add(uniqueName))
                         {
                             uniqueName = Path.GetFileNameWithoutExtension(fileName) + $"({counter})" + Path.GetExtension(fileName);
                             counter++;
                         }
 
-                        File.Copy(original, Path.Combine(audioDir, uniqueName));
-                        nameMap[original] = uniqueName;
+                        ZipArchiveEntry audioEntry = archive.CreateEntry("audio/" + uniqueName,
+                            GetAudioCompressionLevel(Path.GetExtension(fileName)));
+                        try
+                        {
+                            using Stream source = new FileStream(profile.Path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                            using Stream destination = audioEntry.Open();
+                            source.CopyTo(destination);
+                            nameMap[profile.Path] = uniqueName;
+                        }
+                        catch
+                        {
+                            try { audioEntry.Delete(); } catch { }
+                            usedEntryNames.Remove(uniqueName);
+                        }
                     }
-                    catch
+
+                    MusicKit kitCopy = kit.DeepClone();
+                    foreach (SongProfile profile in GetAllSongProfiles(kitCopy))
                     {
-                        // ignore individual file copy errors
+                        if (profile == null || string.IsNullOrWhiteSpace(profile.Path)) continue;
+                        profile.Path = nameMap.TryGetValue(profile.Path, out string mappedName)
+                            ? "audio/" + mappedName
+                            : "";
                     }
+
+                    ZipArchiveEntry jsonEntry = archive.CreateEntry("kit.json", CompressionLevel.Optimal);
+                    using Stream jsonStream = jsonEntry.Open();
+                    using var writer = new StreamWriter(jsonStream);
+                    writer.Write(JsonConvert.SerializeObject(kitCopy, Formatting.Indented));
                 }
 
-                // Create a copy of the kit where paths point to audio/<filename>
-                var kitCopy = JsonConvert.DeserializeObject<MusicKit>(JsonConvert.SerializeObject(kit));
-                foreach (var p in GetAllSongProfiles(kitCopy))
-                {
-                    if (p == null || string.IsNullOrWhiteSpace(p.Path)) continue;
-                    if (nameMap.TryGetValue(p.Path, out var mappedName))
-                    {
-                        p.Path = Path.Combine("audio", mappedName).Replace('\\', '/');
-                    }
-                    else
-                    {
-                        // If we didn't include the file (missing), clear the path to avoid broken references
-                        p.Path = "";
-                    }
-                }
-
-                // Write kit json
-                string kitJsonPath = Path.Combine(tempDir, "kit.json");
-                File.WriteAllText(kitJsonPath, JsonConvert.SerializeObject(kitCopy, Formatting.Indented));
-
-                // Create zip from tempDir
-                if (File.Exists(outputZipPath)) File.Delete(outputZipPath);
-                ZipFile.CreateFromDirectory(tempDir, outputZipPath, CompressionLevel.Optimal, false);
+                File.Move(temporaryZipPath, fullOutputPath, true);
             }
             finally
             {
-                try { Directory.Delete(tempDir, true); } catch { }
+                try { File.Delete(temporaryZipPath); } catch { }
             }
         }
 
         // Import a MusicKit archive (created by ExportMusicKit). Extracts files into local kits folder
         // and registers the kit into Properties.MusicKits automatically.
-        public void ImportMusicKit(string zipPath)
+        public static void ImportMusicKit(string zipPath)
         {
             if (string.IsNullOrWhiteSpace(zipPath) || !File.Exists(zipPath)) throw new FileNotFoundException("Zip file not found", zipPath);
 
-            string tempDir = Path.Combine(Path.GetTempPath(), "CSJukeboxImport_" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(tempDir);
+            ValidateKitArchive(zipPath);
+
+            string createdAudioDirectory = null;
+            string createdKitFile = null;
+            bool committed = false;
 
             try
             {
-                ZipFile.ExtractToDirectory(zipPath, tempDir);
+                using ZipArchive archive = ZipFile.OpenRead(zipPath);
+                Dictionary<string, ZipArchiveEntry> entries = CreateArchiveEntryMap(archive);
+                ZipArchiveEntry kitJsonEntry = entries.TryGetValue("kit.json", out ZipArchiveEntry exactJson)
+                    ? exactJson
+                    : entries.Values.FirstOrDefault(entry =>
+                        !entry.FullName.Contains('/') && entry.FullName.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
+                if (kitJsonEntry == null) throw new InvalidDataException("No kit JSON found in archive.");
 
-                // Find kit json
-                string kitJson = Directory.GetFiles(tempDir, "kit.json", SearchOption.TopDirectoryOnly).FirstOrDefault()
-                                 ?? Directory.GetFiles(tempDir, "*.json", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                string kitJson;
+                using (Stream stream = kitJsonEntry.Open())
+                using (var reader = new StreamReader(stream))
+                    kitJson = reader.ReadToEnd();
 
-                if (kitJson == null) throw new InvalidDataException("No kit JSON found in archive.");
-
-                var importedKit = JsonConvert.DeserializeObject<MusicKit>(File.ReadAllText(kitJson));
+                var importedKit = JsonConvert.DeserializeObject<MusicKit>(kitJson);
                 if (importedKit == null) throw new InvalidDataException("Failed to deserialize kit JSON.");
                 importedKit.EnsureInitialized();
 
@@ -263,7 +272,9 @@ namespace CS_Jukebox
                     baseName = "ImportedKit";
                 string finalName = baseName;
                 int suffix = 1;
-                while (Properties.MusicKits.Any(k => string.Equals(k.Name, finalName, StringComparison.OrdinalIgnoreCase)))
+                while (Properties.MusicKits.Any(k => string.Equals(k.Name, finalName, StringComparison.OrdinalIgnoreCase)) ||
+                       File.Exists(Path.Combine(kitsDir, finalName + ".json")) ||
+                       Directory.Exists(Path.Combine(kitsDir, finalName + "_files")))
                 {
                     finalName = baseName + "_" + suffix++; 
                 }
@@ -272,24 +283,37 @@ namespace CS_Jukebox
                 // Create folder for audio files
                 string audioDest = Path.Combine(kitsDir, finalName + "_files");
                 Directory.CreateDirectory(audioDest);
+                createdAudioDirectory = audioDest;
+                var copiedAudio = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
                 // Move/copy audio files referenced in JSON into audioDest and update paths
                 foreach (var p in GetAllSongProfiles(importedKit))
                 {
                     if (p == null || string.IsNullOrWhiteSpace(p.Path)) continue;
 
-                    if (TryResolveArchiveAudioPath(tempDir, p.Path, out string srcPath) && File.Exists(srcPath))
+                    if (TryResolveArchiveAudioEntry(entries, p.Path, out ZipArchiveEntry sourceEntry))
                     {
-                        string destName = Path.GetFileName(srcPath);
+                        if (copiedAudio.TryGetValue(sourceEntry.FullName, out string existingDestination))
+                        {
+                            p.Path = existingDestination;
+                            continue;
+                        }
+
+                        string destName = Path.GetFileName(sourceEntry.FullName);
                         string destPath = Path.Combine(audioDest, destName);
                         int cnt = 1;
                         while (File.Exists(destPath))
                         {
-                            destName = Path.GetFileNameWithoutExtension(srcPath) + $"({cnt})" + Path.GetExtension(srcPath);
+                            destName = Path.GetFileNameWithoutExtension(sourceEntry.FullName) + $"({cnt})" + Path.GetExtension(sourceEntry.FullName);
                             destPath = Path.Combine(audioDest, destName);
                             cnt++;
                         }
-                        File.Copy(srcPath, destPath);
+
+                        using (Stream source = sourceEntry.Open())
+                        using (Stream destination = new FileStream(destPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                            source.CopyTo(destination);
+
+                        copiedAudio[sourceEntry.FullName] = destPath;
                         p.Path = destPath;
                     }
                     else
@@ -301,6 +325,7 @@ namespace CS_Jukebox
 
                 // Save kit JSON in kits directory
                 string kitFilePath = Path.Combine(kitsDir, importedKit.Name + ".json");
+                createdKitFile = kitFilePath;
                 File.WriteAllText(kitFilePath, JsonConvert.SerializeObject(importedKit, Formatting.Indented));
 
                 // Register in memory
@@ -309,15 +334,43 @@ namespace CS_Jukebox
 
                 // Persist kits
                 Properties.SaveKits();
+                committed = true;
             }
             finally
             {
-                try { Directory.Delete(tempDir, true); } catch { }
+                if (!committed)
+                {
+                    try { if (createdKitFile != null) File.Delete(createdKitFile); } catch { }
+                    try { if (createdAudioDirectory != null) Directory.Delete(createdAudioDirectory, true); } catch { }
+                }
+            }
+        }
+
+        private static void ValidateKitArchive(string zipPath)
+        {
+            const int maximumEntries = 512;
+            const long maximumEntryBytes = 512L * 1024 * 1024;
+            const long maximumTotalBytes = 1024L * 1024 * 1024;
+
+            using ZipArchive archive = ZipFile.OpenRead(zipPath);
+            if (archive.Entries.Count > maximumEntries)
+                throw new InvalidDataException("The archive contains too many files.");
+
+            long totalBytes = 0;
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                if (entry.Length > maximumEntryBytes)
+                    throw new InvalidDataException("An archived file is larger than 512 MB.");
+
+                if (entry.Length > maximumTotalBytes - totalBytes)
+                    throw new InvalidDataException("The extracted kit would be larger than 1 GB.");
+
+                totalBytes += entry.Length;
             }
         }
 
         // Helper to enumerate all SongProfile objects in a MusicKit (primaries and extras)
-        private IEnumerable<SongProfile> GetAllSongProfiles(MusicKit kit)
+        private static IEnumerable<SongProfile> GetAllSongProfiles(MusicKit kit)
         {
             if (kit == null) yield break;
 
@@ -354,18 +407,46 @@ namespace CS_Jukebox
             return string.IsNullOrWhiteSpace(safeName) ? "ImportedKit" : safeName;
         }
 
-        private static bool TryResolveArchiveAudioPath(string archiveRoot, string storedPath, out string sourcePath)
+        private static CompressionLevel GetAudioCompressionLevel(string extension)
         {
-            sourcePath = null;
+            return extension?.ToLowerInvariant() switch
+            {
+                ".mp3" or ".aac" or ".m4a" or ".wma" or ".ogg" or ".flac" => CompressionLevel.NoCompression,
+                _ => CompressionLevel.Fastest
+            };
+        }
+
+        private static Dictionary<string, ZipArchiveEntry> CreateArchiveEntryMap(ZipArchive archive)
+        {
+            var entries = new Dictionary<string, ZipArchiveEntry>(StringComparer.OrdinalIgnoreCase);
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                string normalizedName = entry.FullName.Replace('\\', '/').TrimStart('/');
+                if (string.IsNullOrWhiteSpace(normalizedName) || normalizedName.EndsWith('/')) continue;
+                if (!entries.TryAdd(normalizedName, entry))
+                    throw new InvalidDataException("The archive contains duplicate file names.");
+            }
+
+            return entries;
+        }
+
+        private static bool TryResolveArchiveAudioEntry(
+            IReadOnlyDictionary<string, ZipArchiveEntry> entries,
+            string storedPath,
+            out ZipArchiveEntry sourceEntry)
+        {
+            sourceEntry = null;
             if (string.IsNullOrWhiteSpace(storedPath) || Path.IsPathRooted(storedPath)) return false;
 
-            string relative = storedPath.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
-            string audioRoot = Path.GetFullPath(Path.Combine(archiveRoot, "audio")) + Path.DirectorySeparatorChar;
-            string candidate = Path.GetFullPath(Path.Combine(archiveRoot, relative));
-            if (!candidate.StartsWith(audioRoot, StringComparison.OrdinalIgnoreCase)) return false;
+            string normalized = storedPath.Replace('\\', '/').TrimStart('/');
+            string[] segments = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length < 2 || !string.Equals(segments[0], "audio", StringComparison.OrdinalIgnoreCase) ||
+                segments.Any(segment => segment == "." || segment == ".."))
+            {
+                return false;
+            }
 
-            sourcePath = candidate;
-            return true;
+            return entries.TryGetValue(string.Join('/', segments), out sourceEntry);
         }
 
         private void addButton_Click(object sender, EventArgs e)
@@ -430,7 +511,7 @@ namespace CS_Jukebox
             RegisterInStartup(autoCheckBox.Checked);
         }
 
-        private void exportButton_Click(object sender, EventArgs e)
+        private async void exportButton_Click(object sender, EventArgs e)
         {
             if (Properties.SelectedKit == null)
             {
@@ -443,19 +524,27 @@ namespace CS_Jukebox
             sfd.FileName = ToSafeKitName(Properties.SelectedKit.Name) + ".zip";
             if (sfd.ShowDialog(this) == DialogResult.OK)
             {
+                MusicKit kitSnapshot = Properties.SelectedKit.DeepClone();
                 try
                 {
-                    ExportMusicKit(Properties.SelectedKit, sfd.FileName);
+                    Enabled = false;
+                    UseWaitCursor = true;
+                    await Task.Run(() => ExportMusicKit(kitSnapshot, sfd.FileName));
                     MessageBox.Show("Export completed.", "Export Kit", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Export failed: " + ex.Message, "Export Kit", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                finally
+                {
+                    Enabled = true;
+                    UseWaitCursor = false;
+                }
             }
         }
 
-        private void importButton_Click(object sender, EventArgs e)
+        private async void importButton_Click(object sender, EventArgs e)
         {
             using var ofd = new OpenFileDialog();
             ofd.Filter = "Zip Archive|*.zip";
@@ -463,13 +552,20 @@ namespace CS_Jukebox
             {
                 try
                 {
-                    ImportMusicKit(ofd.FileName);
+                    Enabled = false;
+                    UseWaitCursor = true;
+                    await Task.Run(() => ImportMusicKit(ofd.FileName));
                     MessageBox.Show("Import completed.", "Import Kit", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     RefreshParameters();
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Import failed: " + ex.Message, "Import Kit", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    Enabled = true;
+                    UseWaitCursor = false;
                 }
             }
         }

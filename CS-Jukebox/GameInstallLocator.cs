@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Win32;
+using System.Text.RegularExpressions;
 
 namespace CS_Jukebox
 {
@@ -66,100 +68,80 @@ namespace CS_Jukebox
         // or null if not found.
         public static string AutoDetectCS2Path()
         {
-            try
+            var libraries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string steamRoot in GetSteamRoots())
             {
-                // Read Steam install path from registry (64-bit view key for Wow6432Node)
-                string steamRoot = null;
+                libraries.Add(steamRoot);
+                string libraryFile = Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf");
+                if (!File.Exists(libraryFile)) continue;
+
                 try
                 {
-                    using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\Valve\\Steam"))
+                    string text = File.ReadAllText(libraryFile);
+                    foreach (Match match in Regex.Matches(text, "\"path\"\\s*\"([^\"]+)\"", RegexOptions.IgnoreCase))
                     {
-                        if (key != null)
-                        {
-                            var installPath = key.GetValue("InstallPath") as string;
-                            if (!string.IsNullOrWhiteSpace(installPath) && Directory.Exists(installPath)) steamRoot = installPath;
-                        }
+                        AddExistingDirectory(libraries, match.Groups[1].Value.Replace("\\\\", "\\"));
+                    }
+
+                    // Older Steam versions stored library paths under numeric keys.
+                    foreach (Match match in Regex.Matches(text, "\"\\d+\"\\s*\"([A-Za-z]:\\\\[^\"]+)\""))
+                    {
+                        AddExistingDirectory(libraries, match.Groups[1].Value.Replace("\\\\", "\\"));
                     }
                 }
-                catch { steamRoot = null; }
-
-                var candidates = new List<string>();
-
-                if (!string.IsNullOrWhiteSpace(steamRoot))
-                {
-                    candidates.Add(steamRoot);
-
-                    // Default library file
-                    string vdf = Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf");
-                    if (File.Exists(vdf))
-                    {
-                        try
-                        {
-                            string text = File.ReadAllText(vdf);
-
-                            // Find quoted path entries. Handle both legacy and newer formats.
-                            var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                            // pattern: "path" "D:\\\\SteamLibrary"
-                            var regexPathKey = new System.Text.RegularExpressions.Regex("\"path\"\\s*\\\"([^\\\"]+)\\\"", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                            foreach (System.Text.RegularExpressions.Match m in regexPathKey.Matches(text))
-                            {
-                                var p = m.Groups[1].Value.Replace("\\\\", "\\");
-                                if (Directory.Exists(p)) paths.Add(p);
-                            }
-
-                            // pattern: "1"    "D:\\\\SteamLibrary"
-                            var regexNumeric = new System.Text.RegularExpressions.Regex("\"\\d+\"\\s*\\\"([^\\\"]+)\\\"");
-                            foreach (System.Text.RegularExpressions.Match m in regexNumeric.Matches(text))
-                            {
-                                var p = m.Groups[1].Value.Replace("\\\\", "\\");
-                                if (Directory.Exists(p)) paths.Add(p);
-                            }
-
-                            // fallback: any quoted absolute path like "C:\\Program Files (x86)\\Steam"
-                            var regexAny = new System.Text.RegularExpressions.Regex("\"([A-Za-z]:\\\\[^\"]+)\"");
-                            foreach (System.Text.RegularExpressions.Match m in regexAny.Matches(text))
-                            {
-                                var p = m.Groups[1].Value.Replace("\\\\", "\\");
-                                if (Directory.Exists(p)) paths.Add(p);
-                            }
-
-                            foreach (var p in paths) candidates.Add(p);
-                        }
-                        catch { /* ignore parsing errors */ }
-                    }
-                }
-
-                // Also search common installed locations as a last resort
-                string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                if (!string.IsNullOrWhiteSpace(programFiles) && Directory.Exists(programFiles))
-                    candidates.Add(programFiles);
-
-                // For each candidate library, check steamapps/common/Counter-Strike Global Offensive
-                foreach (var lib in candidates)
-                {
-                    try
-                    {
-                        string common = Path.Combine(lib, "steamapps", "common", "Counter-Strike Global Offensive");
-                        if (Directory.Exists(common))
-                        {
-                            // Try resolving the game directory from the common path
-                            string parent = Directory.GetParent(common).Parent?.FullName; // library root (steamapps's parent)
-                            // The common folder is steamapps/common/CSGO; the game directory we want is likely the common\Counter-Strike Global Offensive\game folder's parent
-                            // Some installs keep game folder inside the CSGO folder; try common\Counter-Strike Global Offensive\game
-                            string candidateGame = Path.Combine(common, "game");
-                            if (TryResolveGameDirectory(candidateGame, out var resolved) || TryResolveGameDirectory(common, out resolved) || TryResolveGameDirectory(lib, out resolved))
-                            {
-                                return resolved;
-                            }
-                        }
-                    }
-                    catch { }
-                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
             }
-            catch { }
+
+            AddExistingDirectory(libraries, Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam"));
+            AddExistingDirectory(libraries, Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Steam"));
+            AddExistingDirectory(libraries, @"C:\Steam");
+
+            foreach (string library in libraries)
+            {
+                string installRoot = Path.Combine(library, "steamapps", "common", "Counter-Strike Global Offensive");
+                if (TryResolveGameDirectory(installRoot, out string resolved))
+                    return resolved;
+            }
 
             return null;
+        }
+
+        private static IEnumerable<string> GetSteamRoots()
+        {
+            var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            ReadSteamRegistryKey(roots, RegistryHive.CurrentUser, RegistryView.Default, @"Software\Valve\Steam");
+            ReadSteamRegistryKey(roots, RegistryHive.LocalMachine, RegistryView.Registry32, @"Software\Valve\Steam");
+            ReadSteamRegistryKey(roots, RegistryHive.LocalMachine, RegistryView.Registry64, @"Software\Valve\Steam");
+            return roots;
+        }
+
+        private static void ReadSteamRegistryKey(HashSet<string> roots, RegistryHive hive, RegistryView view, string subKey)
+        {
+            try
+            {
+                using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, view);
+                using RegistryKey key = baseKey.OpenSubKey(subKey);
+                if (key == null) return;
+
+                foreach (string valueName in new[] { "InstallPath", "SteamPath" })
+                {
+                    if (key.GetValue(valueName) is string path)
+                        AddExistingDirectory(roots, path.Replace('/', Path.DirectorySeparatorChar));
+                }
+            }
+            catch (UnauthorizedAccessException) { }
+            catch (System.Security.SecurityException) { }
+            catch (IOException) { }
+        }
+
+        private static void AddExistingDirectory(HashSet<string> paths, string path)
+        {
+            if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
+                paths.Add(Path.GetFullPath(path));
         }
     }
 }

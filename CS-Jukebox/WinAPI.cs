@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CS_Jukebox
 {
@@ -22,21 +19,61 @@ namespace CS_Jukebox
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumChildWindows(IntPtr hwnd, WindowEnumProc callback, IntPtr lParam);
-        private static Process _realProcess;
+        private static readonly object ForegroundCacheLock = new object();
+        private static IntPtr cachedForegroundWindow;
+        private static int cachedForegroundProcessId;
+        private static string cachedForegroundProcess = "";
 
         public static string GetActiveProcess()
         {
-            string app = "";
-            var foregroundProcess = Process.GetProcessById(GetWindowProcessId(GetforegroundWindow()));
-            if (foregroundProcess.ProcessName == "ApplicationFrameHost")
+            IntPtr foregroundWindow = GetForegroundWindow();
+            int processId = GetWindowProcessId(foregroundWindow);
+            lock (ForegroundCacheLock)
             {
-                foregroundProcess = GetRealProcess(foregroundProcess);
+                if (foregroundWindow == cachedForegroundWindow && processId == cachedForegroundProcessId)
+                    return cachedForegroundProcess;
+
+                cachedForegroundWindow = foregroundWindow;
+                cachedForegroundProcessId = processId;
+                try
+                {
+                    cachedForegroundProcess = GetProcessName(foregroundWindow, processId);
+                }
+                catch (ArgumentException) { cachedForegroundProcess = ""; }
+                catch (InvalidOperationException) { cachedForegroundProcess = ""; }
+                catch (Win32Exception) { cachedForegroundProcess = ""; }
+                return cachedForegroundProcess;
             }
-            if (foregroundProcess != null)
+        }
+
+        private static string GetProcessName(IntPtr window, int processId)
+        {
+            if (processId <= 0) return "";
+
+            using Process foregroundProcess = Process.GetProcessById(processId);
+            string processName = foregroundProcess.ProcessName;
+            if (!string.Equals(processName, "ApplicationFrameHost", StringComparison.OrdinalIgnoreCase))
+                return processName;
+
+            string childProcessName = null;
+            EnumChildWindows(foregroundProcess.MainWindowHandle, (childWindow, _) =>
             {
-                app = foregroundProcess.ProcessName;
-            }
-            return app;
+                int childProcessId = GetWindowProcessId(childWindow);
+                if (childProcessId <= 0) return true;
+
+                try
+                {
+                    using Process childProcess = Process.GetProcessById(childProcessId);
+                    if (!string.Equals(childProcess.ProcessName, "ApplicationFrameHost", StringComparison.OrdinalIgnoreCase))
+                        childProcessName = childProcess.ProcessName;
+                }
+                catch (ArgumentException) { }
+                catch (InvalidOperationException) { }
+
+                return true;
+            }, IntPtr.Zero);
+
+            return childProcessName ?? processName;
         }
 
         private static int GetWindowProcessId(IntPtr hwnd)
@@ -46,25 +83,5 @@ namespace CS_Jukebox
             return pid;
         }
 
-        private static IntPtr GetforegroundWindow()
-        {
-            return GetForegroundWindow();
-        }
-
-        private static Process GetRealProcess(Process foregroundProcess)
-        {
-            EnumChildWindows(foregroundProcess.MainWindowHandle, ChildWindowCallback, IntPtr.Zero);
-            return _realProcess;
-        }
-
-        private static bool ChildWindowCallback(IntPtr hwnd, IntPtr lparam)
-        {
-            var process = Process.GetProcessById(GetWindowProcessId(hwnd));
-            if (process.ProcessName != "ApplicationFrameHost")
-            {
-                _realProcess = process;
-            }
-            return true;
-        }
     }
 }

@@ -60,7 +60,7 @@ namespace CS_Jukebox
             string jsonFile = JsonConvert.SerializeObject(propFile);
             try
             {
-                File.WriteAllText(dir, jsonFile);
+                WriteAllTextAtomically(dir, jsonFile);
             }
             catch (Exception e)
             {
@@ -212,7 +212,7 @@ namespace CS_Jukebox
                     {
                         string kitDir = Path.Combine(dir, musicKit.Name + ".json");
                         string jsonFile = JsonConvert.SerializeObject(musicKit);
-                        File.WriteAllText(kitDir, jsonFile);
+                        WriteAllTextAtomically(kitDir, jsonFile);
                     }
                     catch (Exception e)
                     {
@@ -355,6 +355,24 @@ namespace CS_Jukebox
         {
             Console.WriteLine(title + ": " + message);
             MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private static void WriteAllTextAtomically(string path, string contents)
+        {
+            string directory = Path.GetDirectoryName(Path.GetFullPath(path));
+            Directory.CreateDirectory(directory);
+            string temporaryPath = Path.Combine(directory,
+                "." + Path.GetFileName(path) + "." + Guid.NewGuid().ToString("N") + ".tmp");
+
+            try
+            {
+                File.WriteAllText(temporaryPath, contents);
+                File.Move(temporaryPath, path, true);
+            }
+            finally
+            {
+                try { File.Delete(temporaryPath); } catch { }
+            }
         }
 
         //Inner class for properties parameters

@@ -12,6 +12,7 @@ namespace CS_Jukebox
         bool createMode = false;
         private Jukebox previewJukebox;
         private SongProfile previewSong;
+        private TrackBar previewVolumeTrackBar;
         private readonly Dictionary<TextBox, (TextBox Minutes, TextBox Seconds)> startTimeControls = new();
         private readonly GroupBox deathGroup = new GroupBox();
         private readonly Label deathStartLabel = new Label();
@@ -39,6 +40,7 @@ namespace CS_Jukebox
             LoadKitParameters();
             AddExtraSongsButtons();
             EnsurePreviewButtonsVisible();
+            ConfigurePreviewVolumeSynchronization();
 
             // Jukebox used for previewing individual tracks inside the editor
             previewJukebox = new Jukebox();
@@ -193,6 +195,29 @@ namespace CS_Jukebox
             previewJukebox?.Dispose();
         }
 
+        private void ConfigurePreviewVolumeSynchronization()
+        {
+            foreach (TrackBar trackBar in new[]
+            {
+                freezeTrackBar, startTrackBar, bombTrackBar, wonTrackBar, lostTrackBar,
+                MVPTrackBar, bombTenSecTrackBar, roundTenSecTrackBar, menuTrackBar, deathTrackBar
+            })
+            {
+                trackBar.ValueChanged += PreviewVolumeTrackBar_ValueChanged;
+            }
+        }
+
+        private void PreviewVolumeTrackBar_ValueChanged(object sender, EventArgs e)
+        {
+            if (sender is not TrackBar trackBar || !ReferenceEquals(trackBar, previewVolumeTrackBar) ||
+                previewJukebox?.IsPlaybackActive() != true)
+            {
+                return;
+            }
+
+            previewJukebox.UpdatePreviewVolume(trackBar.Value);
+        }
+
         private void AddExtraSongsButtons()
         {
             AddExtraSongsButton(freezeGroup, "Freeze Time", () => currentKit.freezeSongs, songs => currentKit.freezeSongs = songs);
@@ -224,6 +249,7 @@ namespace CS_Jukebox
             {
                 previewJukebox.StopImmediately();
                 previewSong = null;
+                previewVolumeTrackBar = null;
                 ResetPreviewButtonTexts();
                 using var editor = new AdditionalSongsForm(eventName, getSongs());
                 if (editor.ShowDialog(this) == DialogResult.OK)
@@ -255,22 +281,22 @@ namespace CS_Jukebox
         private void saveButton_Click(object sender, EventArgs e)
         {
             string kitName = nameTextBox.Text.Trim();
-            if (!Properties.TryValidateKitName(kitName, createMode ? null : currentKit, out string nameError))
+            if (!Properties.TryValidateKitName(kitName, createMode ? null : originalKit, out string nameError))
             {
                 MessageBox.Show(nameError, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else
             {
-                currentKit.freezeSong = GetSongFromParams(freezeTextBox, freezeTrackBar, freezeStartTextBox);
-                currentKit.startSong = GetSongFromParams(startTextBox, startTrackBar, startStartTextBox);
-                currentKit.bombSong = GetSongFromParams(bombTextBox, bombTrackBar, bombStartTextBox);
-                currentKit.winSong = GetSongFromParams(wonTextBox, wonTrackBar, wonStartTextBox);
-                currentKit.loseSong = GetSongFromParams(lostTextBox, lostTrackBar, lostStartTextBox);
-                currentKit.MVPSong = GetSongFromParams(MVPTextBox, MVPTrackBar, MVPStartTextBox);
-                currentKit.bombTenSecSong = GetSongFromParams(bombTenSecTextBox, bombTenSecTrackBar, bombTenSecStartBox);
-                currentKit.roundTenSecSong = GetSongFromParams(roundTenSecTextBox, roundTenSecTrackBar, roundTenSecStartBox);
-                currentKit.mainMenuSong = GetSongFromParams(menuTextBox, menuTrackBar, menuStartTextBox);
-                currentKit.deathSong = GetSongFromParams(deathTextBox, deathTrackBar, deathStartTextBox);
+                currentKit.freezeSong = GetSongFromParams(freezeTextBox, freezeTrackBar, freezeStartTextBox, currentKit.freezeSong);
+                currentKit.startSong = GetSongFromParams(startTextBox, startTrackBar, startStartTextBox, currentKit.startSong);
+                currentKit.bombSong = GetSongFromParams(bombTextBox, bombTrackBar, bombStartTextBox, currentKit.bombSong);
+                currentKit.winSong = GetSongFromParams(wonTextBox, wonTrackBar, wonStartTextBox, currentKit.winSong);
+                currentKit.loseSong = GetSongFromParams(lostTextBox, lostTrackBar, lostStartTextBox, currentKit.loseSong);
+                currentKit.MVPSong = GetSongFromParams(MVPTextBox, MVPTrackBar, MVPStartTextBox, currentKit.MVPSong);
+                currentKit.bombTenSecSong = GetSongFromParams(bombTenSecTextBox, bombTenSecTrackBar, bombTenSecStartBox, currentKit.bombTenSecSong);
+                currentKit.roundTenSecSong = GetSongFromParams(roundTenSecTextBox, roundTenSecTrackBar, roundTenSecStartBox, currentKit.roundTenSecSong);
+                currentKit.mainMenuSong = GetSongFromParams(menuTextBox, menuTrackBar, menuStartTextBox, currentKit.mainMenuSong);
+                currentKit.deathSong = GetSongFromParams(deathTextBox, deathTrackBar, deathStartTextBox, currentKit.deathSong);
 
                 if (createMode)
                 {
@@ -302,11 +328,23 @@ namespace CS_Jukebox
         }
 
         //Returns a new SongProfile based on values of given form controls
-        private SongProfile GetSongFromParams(TextBox pathTextBox, TrackBar volumeTrackbar, TextBox startTextBox)
+        private SongProfile GetSongFromParams(TextBox pathTextBox, TrackBar volumeTrackbar, TextBox startTextBox,
+            SongProfile previousSong = null)
         {
             SongProfile newSong = new SongProfile(pathTextBox.Text, volumeTrackbar.Value);
             if (startTimeControls.TryGetValue(startTextBox, out var time))
                 newSong.Start = (GetTimeValue(time.Minutes, 999) * 60) + GetTimeValue(time.Seconds, 59);
+
+            if (previousSong != null && previousSong.NormalizationGain > 0f &&
+                string.Equals(previousSong.Path, newSong.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                newSong.NormalizationGain = previousSong.NormalizationGain;
+            }
+            else if (AudioUtils.TryGetCachedNormalizationGain(newSong.Path, out float cachedGain))
+            {
+                newSong.NormalizationGain = cachedGain;
+            }
+
             return newSong;
         }
 
@@ -433,6 +471,7 @@ namespace CS_Jukebox
                 {
                     previewJukebox.Stop();
                     previewSong = null;
+                    previewVolumeTrackBar = null;
                     previewButton.Text = "▶";
                     return;
                 }
@@ -440,6 +479,7 @@ namespace CS_Jukebox
                 // Preview exactly what will play in-game: volume and offset.
                 previewJukebox.PlayPreviewSong(song);
                 previewSong = song;
+                previewVolumeTrackBar = volumeTrackBar;
 
                 ResetPreviewButtonTexts();
 

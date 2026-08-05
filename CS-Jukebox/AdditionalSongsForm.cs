@@ -64,6 +64,7 @@ namespace CS_Jukebox
             volumeTrackBar.Maximum = 100;
             volumeTrackBar.TickStyle = TickStyle.None;
             volumeTrackBar.Value = 100;
+            volumeTrackBar.ValueChanged += VolumeTrackBar_ValueChanged;
 
             var startLabel = new Label { Text = "Start At:", Left = 240, Top = 145, AutoSize = true };
             startMinutesTextBox.SetBounds(240, 167, 55, 23);
@@ -133,9 +134,18 @@ namespace CS_Jukebox
         private void StoreCurrentSong()
         {
             if (selectedIndex < 0 || selectedIndex >= songs.Count) return;
-            songs[selectedIndex].Path = pathTextBox.Text;
-            songs[selectedIndex].Volume = volumeTrackBar.Value;
-            songs[selectedIndex].Start = (GetTimeValue(startMinutesTextBox, 999) * 60) + GetTimeValue(startSecondsTextBox, 59);
+            SongProfile song = songs[selectedIndex];
+            string newPath = pathTextBox.Text;
+            if (!string.Equals(song.Path, newPath, StringComparison.OrdinalIgnoreCase))
+            {
+                song.NormalizationGain = AudioUtils.TryGetCachedNormalizationGain(newPath, out float cachedGain)
+                    ? cachedGain
+                    : -1f;
+            }
+
+            song.Path = newPath;
+            song.Volume = volumeTrackBar.Value;
+            song.Start = (GetTimeValue(startMinutesTextBox, 999) * 60) + GetTimeValue(startSecondsTextBox, 59);
         }
 
         private void ClearEditor()
@@ -179,6 +189,17 @@ namespace CS_Jukebox
                 MessageBox.Show("Failed to preview file: " + ex.Message, "Preview error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void VolumeTrackBar_ValueChanged(object sender, EventArgs e)
+        {
+            if (previewSong == null || !previewJukebox.IsPlaybackActive() ||
+                !string.Equals(previewSong.Path, pathTextBox.Text, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            previewJukebox.UpdatePreviewVolume(volumeTrackBar.Value);
         }
 
         private static int GetTimeValue(TextBox textBox, int maximum)

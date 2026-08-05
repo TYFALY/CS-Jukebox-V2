@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/c1716a56-5743-4b0f-a908-a70c812e4016
 ### Prerequisites & Download
 
 1. Download the latest compiled package:
-   **[Download CS-Jukebox V2 Release](https://github.com/TYFALY/CS-Jukebox-V2/releases/download/v1.0.1/CS.Jukebox.v2.rar)** *(Windows only)*
+   **[Download the latest CS-Jukebox V2 release](https://github.com/TYFALY/CS-Jukebox-V2/releases/latest)** *(Windows only)*
 
 2. Extract the `.rar` archive to a folder on your PC.
 
@@ -36,26 +36,12 @@ Navigate to:
 
 ---
 
-## 🛠️ Troubleshooting — Directory Detection Fix
+## 🛠️ Troubleshooting — Directory Detection
 
-If the built-in file browser fails to recognize your installation path:
+The application automatically checks the Steam installation and all libraries listed in `libraryfolders.vdf`.
+If detection fails, manually select the CS2 `game` folder containing both `bin\win64\cs2.exe` and `csgo\cfg`.
 
-1. Open your Counter-Strike 2 `game` folder in Windows Explorer.
-2. Create a blank text file named:
-
-```text
-csgo.txt
-```
-
-3. Rename the extension from `.txt` to `.exe` so it becomes:
-
-```text
-csgo.exe
-```
-
-4. Run the CS-Jukebox directory browser again and re-select the folder.
-
-The application should now successfully verify the path.
+Audio playback uses NAudio and does not require Windows Media Player. MP3 and WAV are the recommended formats; AAC, M4A, and WMA availability may depend on Windows Media Foundation codecs.
 
 ---
 
