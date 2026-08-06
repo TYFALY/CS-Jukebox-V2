@@ -44,22 +44,18 @@ If detection fails, manually select the CS2 `game` folder containing both `bin\w
 Audio playback uses NAudio and does not require Windows Media Player. MP3 and WAV are the recommended formats; AAC, M4A, and WMA availability may depend on Windows Media Foundation codecs.
 
 ---
+## 🎵 Custom Music Kit Approximate Duration Guide
 
-## 🎵 Creating Custom Music Kits
-
-All custom audio tracks must be provided by the user.
-
-For optimal timing, seamless transitions, and responsive gameplay syncing, these durations are recommended:
-
-| Event / Track        | Ideal Length       | Purpose              |
-| -------------------- | ------------------ | -------------------- |
-| Main Menu            | Ambient / Loopable | Idle menu music      |
-| Round Start          | 5–10 sec           | Spawn intro          |
-| Action / Choose Team | 10–15 sec          | Warmup & team select |
-| MVP Anthem           | ~10 sec            | Round MVP            |
-| Bomb Planted         | ~40 sec            | Bomb timer tension   |
-| 10-Second Count      | Exactly 10 sec     | Final warning        |
-| Round Won / Lost     | ~10 sec            | Round result outro   |
+| Event / Track          | Minimum Length | Ideal Duration      | Behavior & Engine Context |
+| ---------------------- | -------------- | ------------------- | ------------------------- |
+| **Main Menu**          | Loopable       | Ambient / Seamless  | Loops continuously while in game lobby or main menu. |
+| **Freeze Time**        | 10 sec         | 10–15 sec           | Plays during buy phase (15 sec timer). |
+| **Round Start**        | 5 sec          | 5–10 sec            | Plays at round start; automatically fades out after 5s. |
+| **Bomb Planted**       | 30 sec         | 30 sec              | Plays on plant (Premier bomb timer is 40 sec total). |
+| **10-Sec Warning**     | 10 sec         | Exactly 10 sec      | Plays when exactly 10s remain on bomb or round timer. |
+| **MVP Anthem**         | **7 sec**      | **7 sec**           | Round MVP anthem. Fades out at 7s when next freeze phase loads. |
+| **Round Won / Lost**   | **7 sec**      | **7 sec**           | Fallback round-end audio when you are not the MVP. |
+| **Player Death**       | 3 sec          | 3–5 sec             | Secondary overlay audio cue played when local player dies. |
 
 ### Configuration Steps
 
