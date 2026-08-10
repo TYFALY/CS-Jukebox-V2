@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -316,7 +316,7 @@ namespace CS_Jukebox
             return true;
         }
 
-        private static bool TryValidateKitFileName(string name, out string error)
+        public static bool TryValidateKitFileName(string name, out string error)
         {
             error = null;
             string trimmedName = name?.Trim();

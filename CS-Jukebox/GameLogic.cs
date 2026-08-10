@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Windows.Forms;
 using CSGSI;
@@ -21,14 +21,17 @@ namespace CS_Jukebox
 
         public GameLogic()
         {
+            Logger.LogEntry("Initializing GameLogic");
             uiContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
             jukebox = new Jukebox();
             try
             {
                 StartGameListener();
+                Logger.LogExit("GameLogic initialized successfully");
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.LogError("GameLogic constructor", ex);
                 jukebox.Dispose();
                 throw;
             }
@@ -36,24 +39,29 @@ namespace CS_Jukebox
 
         void StartGameListener()
         {
+            Logger.LogEntry();
             gsl = new GameStateListener(3010);
             gsl.NewGameState += new NewGameStateHandler(OnGameStateReceived);
 
             if (!gsl.Start())
             {
-                Console.WriteLine("Game State Listener failed to start.");
-                throw new InvalidOperationException(
+                var ex = new InvalidOperationException(
                     "The Game State Integration listener could not start on port 3010. " +
                     "Close another CS Jukebox instance or any application using this port, then try again.");
+                Logger.LogError("StartGameListener failed", ex);
+                Console.WriteLine("Game State Listener failed to start.");
+                throw ex;
             }
             else
             {
                 Console.WriteLine("Listening...");
+                Logger.LogExit("GameStateListener started on port 3010");
             }
         }
 
         public void Stop()
         {
+            Logger.LogEntry($"stopped={stopped}");
             if (stopped) return;
             stopped = true;
             Console.WriteLine("Stopping Game Listener");
@@ -63,6 +71,7 @@ namespace CS_Jukebox
                 gsl.Stop();
             }
             jukebox?.Dispose();
+            Logger.LogExit();
         }
 
         public void Dispose()
@@ -73,6 +82,7 @@ namespace CS_Jukebox
         private void OnGameStateReceived(GameState gs)
         {
             if (stopped) return;
+            Logger.LogEntry($"RoundPhase={gs.Round.Phase}, MapPhase={gs.Map.Phase}");
             uiContext.Post(_ =>
             {
                 if (!stopped) OnNewGameState(gs);
@@ -81,6 +91,7 @@ namespace CS_Jukebox
 
         void OnNewGameState(GameState gs)
         {
+            Logger.LogEntry($"Phase={gs.Round.Phase}, MusicState={musicState}");
             if (Properties.SelectedKit == null) return;
 
             int currentMvpCount = gs.Player.MatchStats.MVPs;
@@ -91,14 +102,16 @@ namespace CS_Jukebox
             {
                 musicState = MusicState.Menu;
                 playerMVPs = -1;
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.mainMenuSong, Properties.SelectedKit.mainMenuSongs), true);
+                Logger.LogEvent("TransitionToMenu", $"SelectedKit={Properties.SelectedKit.Name}");
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.mainMenuSong, Properties.SelectedKit.mainMenuSongs), true);
                 Console.WriteLine("Main Menu");
             }
 
             if (gs.Round.Phase == RoundPhase.FreezeTime && musicState != MusicState.FreezeTime)
             {
                 musicState = MusicState.FreezeTime;
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.freezeSong, Properties.SelectedKit.freezeSongs), false);
+                Logger.LogEvent("TransitionToFreezeTime", $"SelectedKit={Properties.SelectedKit.Name}");
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.freezeSong, Properties.SelectedKit.freezeSongs), false);
                 roundTenSecondPlayed = false;
                 bombTenSecondPlayed = false;
                 Console.WriteLine("FreezeTime Begun");
@@ -110,6 +123,7 @@ namespace CS_Jukebox
                 {
                     //Fade out main menu song
                     Console.WriteLine("Stopping main menu song");
+                    Logger.LogEvent("StopMainMenuSong");
                     jukebox.Stop();
                 }
                 return;
@@ -119,11 +133,11 @@ namespace CS_Jukebox
             {
                 jukebox.Stop();
                 musicState = MusicState.Live;
-                // RoundPhase.Live is CS2's "round started" signal. Let the
-                // selected intro play for five seconds, then fade it out.
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.startSong, Properties.SelectedKit.startSongs), false, 5);
+                Logger.LogEvent("TransitionToLive", $"SelectedKit={Properties.SelectedKit.Name}");
+                // Play the round-start track to completion, matching the behaviour
+                // of FreezeTime and MVP which also use the two-arg overload.
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.startSong, Properties.SelectedKit.startSongs), false);
                 Console.WriteLine("Round Begun");
-
             }
 
             HandlePlayerDeath(gs);
@@ -131,6 +145,7 @@ namespace CS_Jukebox
             if (gs.Round.Phase == RoundPhase.Over && musicState != MusicState.Over)
             {
                 musicState = MusicState.Over;
+                Logger.LogEvent("TransitionToRoundOver", $"WinTeam={gs.Round.WinTeam}, PlayerTeam={gs.Player.Team}");
 
                 if (gs.Round.WinTeam == RoundWinTeam.T && gs.Player.Team == PlayerTeam.T)
                 {
@@ -143,7 +158,8 @@ namespace CS_Jukebox
                 else
                 {
                     //lose
-                    jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.loseSong, Properties.SelectedKit.loseSongs), false);
+                    Logger.LogEvent("RoundLose");
+                    PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.loseSong, Properties.SelectedKit.loseSongs), false);
                 }
             }
 
@@ -151,11 +167,29 @@ namespace CS_Jukebox
             {
                 musicState = MusicState.BombPlanted;
                 bombTenSecondPlayed = false;
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombSong, Properties.SelectedKit.bombSongs), false);
+                Logger.LogEvent("TransitionToBombPlanted");
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombSong, Properties.SelectedKit.bombSongs), false);
                 Console.WriteLine("Bomb Planted");
             }
 
             HandleTenSecondCues(gs);
+            Logger.LogExit();
+        }
+
+        private bool PlaySongIfValid(SongProfile song, bool loop, int duration = 0)
+        {
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
+            {
+                Logger.Log($"WARNING: Song file path is missing or invalid: '{song?.Path}'");
+                return false;
+            }
+
+            if (duration > 0)
+                jukebox.PlaySong(song, loop, duration);
+            else
+                jukebox.PlaySong(song, loop);
+
+            return true;
         }
 
         private void HandlePlayerDeath(GameState gs)
@@ -169,7 +203,8 @@ namespace CS_Jukebox
             if (!diedNow) return;
 
             Console.WriteLine("Local player died");
-            jukebox.PlaySong(
+            Logger.LogEvent("PlayerDeathDetected");
+            PlaySongIfValid(
                 Properties.SelectedKit.PickSong(Properties.SelectedKit.deathSong, Properties.SelectedKit.deathSongs),
                 false,
                 5);
@@ -201,13 +236,15 @@ namespace CS_Jukebox
             {
                 roundTenSecondPlayed = true;
                 Console.WriteLine("Ten seconds left in round");
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.roundTenSecSong, Properties.SelectedKit.roundTenSecSongs), false);
+                Logger.LogEvent("RoundTenSecondCue");
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.roundTenSecSong, Properties.SelectedKit.roundTenSecSongs), false);
             }
             else if (cue == PhaseCountdownsPhase.Bomb && !bombTenSecondPlayed)
             {
                 bombTenSecondPlayed = true;
                 Console.WriteLine("Ten seconds left on bomb");
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false);
+                Logger.LogEvent("BombTenSecondCue");
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false);
             }
         }
 
@@ -241,16 +278,20 @@ namespace CS_Jukebox
 
         private void RoundWin(GameState gs)
         {
+            Logger.LogEntry($"CurrentMVPs={gs.Player.MatchStats.MVPs}, PreviousMVPs={playerMVPs}");
             //Check if player was MVP of the round
             if (gs.Player.MatchStats.MVPs > playerMVPs)
             {
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.MVPSong, Properties.SelectedKit.MVPSongs), false);
+                Logger.LogEvent("RoundWinMVP");
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.MVPSong, Properties.SelectedKit.MVPSongs), false);
                 playerMVPs = gs.Player.MatchStats.MVPs;
             }
             else
             {
-                jukebox.PlaySong(Properties.SelectedKit.PickSong(Properties.SelectedKit.winSong, Properties.SelectedKit.winSongs), false);
+                Logger.LogEvent("RoundWinRegular");
+                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.winSong, Properties.SelectedKit.winSongs), false);
             }
+            Logger.LogExit();
         }
 
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -64,6 +64,7 @@ namespace CS_Jukebox
 
         public void EnsureInitialized()
         {
+            Logger.LogEntry($"KitName={Name}");
             freezeSong ??= new SongProfile();
             startSong ??= new SongProfile();
             bombSong ??= new SongProfile();
@@ -88,12 +89,14 @@ namespace CS_Jukebox
 
             foreach (SongProfile song in GetAllSongs())
                 song?.EnsureValid();
+            Logger.LogExit();
         }
 
         public MusicKit DeepClone()
         {
+            Logger.LogEntry($"KitName={Name}");
             EnsureInitialized();
-            return new MusicKit(Name)
+            var clone = new MusicKit(Name)
             {
                 freezeSong = freezeSong.Clone(),
                 startSong = startSong.Clone(),
@@ -116,6 +119,8 @@ namespace CS_Jukebox
                 mainMenuSongs = CloneSongs(mainMenuSongs),
                 deathSongs = CloneSongs(deathSongs)
             };
+            Logger.LogExit($"Clone created for kit {Name}");
+            return clone;
         }
 
         private IEnumerable<SongProfile> GetAllSongs()
@@ -147,13 +152,17 @@ namespace CS_Jukebox
 
         public SongProfile PickSong(SongProfile primarySong, List<SongProfile> extraSongs)
         {
+            Logger.LogEntry($"Primary={primarySong?.Path}, ExtraCount={extraSongs?.Count ?? 0}");
             var songs = new List<SongProfile>();
             if (IsUsable(primarySong)) songs.Add(primarySong);
             if (extraSongs != null) songs.AddRange(extraSongs.Where(IsUsable));
 
-            return songs.Count == 0
+            SongProfile chosen = songs.Count == 0
                 ? primarySong ?? new SongProfile()
                 : songs[Random.Shared.Next(songs.Count)];
+
+            Logger.LogExit($"ChosenPath={chosen?.Path}, AvailableCount={songs.Count}");
+            return chosen;
         }
 
         private static bool IsUsable(SongProfile song)

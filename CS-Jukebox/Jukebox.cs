@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +18,6 @@ namespace CS_Jukebox
 
         private CancellationTokenSource fadeCts;
         private bool previewMode;
-        private float playbackNormalizationGain = 1f;
         private float lastAppliedVolume = -1f;
 
         private bool isPlaying = false;
@@ -26,45 +25,66 @@ namespace CS_Jukebox
 
         public Jukebox()
         {
+            Logger.LogEntry();
             SetupTimer();
         }
 
         public void PlaySong(string path)
         {
+            Logger.LogEntry($"path={path}");
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return;
             PlayPreviewSong(new SongProfile(path, 100));
+        }
+
+        private static WaveStream CreateAudioStream(string path)
+        {
+            try
+            {
+                return new AudioFileReader(path);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("AudioFileReader failed, falling back to MediaFoundationReader", ex);
+                return new MediaFoundationReader(path);
+            }
         }
 
         // Play song for length or loop indefinitely
         public void PlaySong(SongProfile song, bool loop)
         {
-            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path)) return;
-
-            CancelScheduledStopInternal();
-            CancelFadeInternal();
-            previewMode = false;
-            currentSong = song;
-            playbackNormalizationGain = PrepareNormalization(currentSong);
+            Logger.LogEntry($"song={song?.Path}, loop={loop}");
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
+            {
+                Logger.LogExit("Invalid song or missing file");
+                return;
+            }
 
             lock (lockObj)
             {
+                CancelScheduledStopInternal();
+                CancelFadeInternal();
+                previewMode = false;
+                currentSong = song;
+                PrepareNormalization(currentSong);
                 CleanupOutput();
 
                 try
                 {
-                    var afr = new AudioFileReader(currentSong.Path);
+                    WaveStream readerStream = CreateAudioStream(currentSong.Path);
                     if (currentSong.Start > 0)
-                        afr.CurrentTime = TimeSpan.FromSeconds(Math.Min(currentSong.Start, afr.TotalTime.TotalSeconds));
+                        readerStream.CurrentTime = TimeSpan.FromSeconds(Math.Min(currentSong.Start, readerStream.TotalTime.TotalSeconds));
 
-                    // AudioFileReader may be read by WaveOutEvent.Init, so set
-                    // the effective volume before initializing the output buffer.
-                    afr.Volume = CalculateEffectiveVolume();
-                    lastAppliedVolume = afr.Volume;
+                    float effectiveVolume = CalculateEffectiveVolume();
+                    if (readerStream is AudioFileReader reader)
+                    {
+                        reader.Volume = effectiveVolume;
+                        lastAppliedVolume = effectiveVolume;
+                    }
 
-                    WaveStream ws = afr;
+                    WaveStream ws = readerStream;
                     if (loop)
                     {
-                        ws = new LoopStream(afr);
+                        ws = new LoopStream(readerStream);
                     }
 
                     waveStream = ws;
@@ -72,9 +92,11 @@ namespace CS_Jukebox
                     outputDevice.Init(waveStream);
                     outputDevice.Play();
                     songTimer.Start();
+                    Logger.LogExit("Playback started successfully");
                 }
                 catch (Exception ex)
                 {
+                    Logger.LogError("PlaySong failed", ex);
                     CleanupOutput();
                     Console.WriteLine("Audio playback failed: " + ex.Message);
                 }
@@ -83,33 +105,45 @@ namespace CS_Jukebox
 
         public void PlayPreviewSong(SongProfile song)
         {
-            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path)) return;
-
-            CancelScheduledStopInternal();
-            CancelFadeInternal();
-            previewMode = true;
-            currentSong = song;
-            playbackNormalizationGain = PrepareNormalization(currentSong);
+            Logger.LogEntry($"song={song?.Path}");
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
+            {
+                Logger.LogExit("Invalid preview song or missing file");
+                return;
+            }
 
             lock (lockObj)
             {
+                CancelScheduledStopInternal();
+                CancelFadeInternal();
+                previewMode = true;
+                currentSong = song;
+                PrepareNormalization(currentSong);
                 CleanupOutput();
+
                 try
                 {
-                    var afr = new AudioFileReader(currentSong.Path);
+                    WaveStream readerStream = CreateAudioStream(currentSong.Path);
                     if (currentSong.Start > 0)
-                        afr.CurrentTime = TimeSpan.FromSeconds(Math.Min(currentSong.Start, afr.TotalTime.TotalSeconds));
-                    afr.Volume = CalculateEffectiveVolume();
-                    lastAppliedVolume = afr.Volume;
+                        readerStream.CurrentTime = TimeSpan.FromSeconds(Math.Min(currentSong.Start, readerStream.TotalTime.TotalSeconds));
 
-                    waveStream = afr;
+                    float effectiveVolume = CalculateEffectiveVolume();
+                    if (readerStream is AudioFileReader reader)
+                    {
+                        reader.Volume = effectiveVolume;
+                        lastAppliedVolume = effectiveVolume;
+                    }
+
+                    waveStream = readerStream;
                     outputDevice = new WaveOutEvent();
                     outputDevice.Init(waveStream);
                     outputDevice.Play();
                     songTimer.Start();
+                    Logger.LogExit("Preview playback started successfully");
                 }
                 catch (Exception ex)
                 {
+                    Logger.LogError("PlayPreviewSong failed", ex);
                     CleanupOutput();
                     throw new InvalidOperationException("The selected audio file could not be played.", ex);
                 }
@@ -131,6 +165,7 @@ namespace CS_Jukebox
         // Play song for a determined amount of time (seconds)
         public void PlaySong(SongProfile song, bool loop, int duration)
         {
+            Logger.LogEntry($"song={song?.Path}, loop={loop}, duration={duration}");
             if (song == null || string.IsNullOrWhiteSpace(song.Path) || duration <= 0) return;
             PlaySong(song, loop);
 
@@ -138,6 +173,7 @@ namespace CS_Jukebox
 
             scheduledStopAtMilliseconds = Environment.TickCount64 + duration * 1000L;
             isPlaying = true;
+            Logger.LogExit($"Scheduled stop at {duration}s");
         }
 
         public void UpdateVolume()
@@ -148,8 +184,12 @@ namespace CS_Jukebox
 
                 float master = (float)Properties.MasterVolume / 100f;
                 float songVol = (float)currentSong.Volume / 100f;
+                // Read the live normalization gain from the song profile.
+                // Negative means analysis has not finished yet; treat as 1.
+                float normGain = currentSong.NormalizationGain > 0f ? currentSong.NormalizationGain : 1f;
                 float focus = previewMode || IsGameFocused() ? 1f : 0f;
-                float effectiveVolume = Math.Clamp(master * songVol * playbackNormalizationGain * focus, 0f, 1f);
+                // Final volume = GlobalVolume * SectionVolume * normGain * focus
+                float effectiveVolume = Math.Clamp(master * songVol * normGain * focus, 0f, 1f);
                 if (Math.Abs(effectiveVolume - lastAppliedVolume) > 0.0001f)
                     ApplyReaderVolume(effectiveVolume);
             }
@@ -171,8 +211,12 @@ namespace CS_Jukebox
             if (currentSong == null) return 0f;
             float master = Properties.MasterVolume / 100f;
             float songVolume = currentSong.Volume / 100f;
+            // Read the live normalization gain from the song profile.
+            // Negative means analysis has not finished yet; treat as 1.
+            float normGain = currentSong.NormalizationGain > 0f ? currentSong.NormalizationGain : 1f;
             float focus = previewMode || IsGameFocused() ? 1f : 0f;
-            return Math.Clamp(master * songVolume * playbackNormalizationGain * focus, 0f, 1f);
+            // Final volume = GlobalVolume * SectionVolume * normGain * focus
+            return Math.Clamp(master * songVolume * normGain * focus, 0f, 1f);
         }
 
         private void ApplyReaderVolume(float volume)
@@ -189,7 +233,7 @@ namespace CS_Jukebox
             }
         }
 
-        private static float PrepareNormalization(SongProfile song)
+        private float PrepareNormalization(SongProfile song)
         {
             if (song == null) return 1f;
             if (song.NormalizationGain > 0f) return song.NormalizationGain;
@@ -204,17 +248,23 @@ namespace CS_Jukebox
             return 1f;
         }
 
-        // Stops the current track with a smooth fade.
+        // Stops the current track with a smooth 150ms fade.
         public void Stop()
         {
-            CancelScheduledStopInternal();
-            if (!IsPlaybackActive())
+            Logger.LogEntry();
+            lock (lockObj)
             {
-                StopImmediately();
-                return;
+                CancelScheduledStopInternal();
+                if (!IsPlaybackActive())
+                {
+                    CleanupOutput();
+                    Logger.LogExit("Not active; stopped immediately");
+                    return;
+                }
+                // Start quick 150ms fade immediately
+                _ = StopSongAsync();
+                Logger.LogExit("Initiated fade out");
             }
-            // Start fade immediately
-            _ = StopSongAsync();
         }
 
         private async Task StopSongAsync()
@@ -232,8 +282,8 @@ namespace CS_Jukebox
 
             try
             {
-                const int steps = 28;
-                const int intervalMs = 50;
+                const int steps = 15;
+                const int intervalMs = 10; // 15 steps * 10ms = 150ms
 
                 for (int i = 0; i < steps; i++)
                 {
@@ -242,13 +292,15 @@ namespace CS_Jukebox
                         if (cts.IsCancellationRequested || !ReferenceEquals(fadeCts, cts))
                             break;
 
+                        float factor = 1f - ((float)(i + 1) / steps);
+
                         if (waveStream is AudioFileReader afr)
                         {
-                            afr.Volume = afr.Volume * (1f - (1f / (steps - i + 1)));
+                            afr.Volume = afr.Volume * factor;
                         }
                         else if (waveStream is LoopStream ls && ls.Source is AudioFileReader afr2)
                         {
-                            afr2.Volume = afr2.Volume * (1f - (1f / (steps - i + 1)));
+                            afr2.Volume = afr2.Volume * factor;
                         }
                     }
 
@@ -291,17 +343,24 @@ namespace CS_Jukebox
 
         public void StopImmediately()
         {
-            CancelScheduledStopInternal();
-            CancelFadeInternal();
+            Logger.LogEntry();
             lock (lockObj)
             {
+                CancelScheduledStopInternal();
+                CancelFadeInternal();
                 CleanupOutput();
             }
+            Logger.LogExit();
         }
 
-        private static void BeginNormalization(SongProfile song)
+        private void BeginNormalization(SongProfile song)
         {
-            if (song.NormalizationGain > 0f) return;
+            Logger.LogEntry($"path={song?.Path}");
+            if (song.NormalizationGain > 0f)
+            {
+                Logger.LogExit($"Already normalized: gain={song.NormalizationGain}");
+                return;
+            }
 
             song.NormalizationGain = 1f;
             string path = song.Path;
@@ -309,22 +368,49 @@ namespace CS_Jukebox
             if (calculation.IsCompletedSuccessfully)
             {
                 song.NormalizationGain = calculation.Result;
+                Logger.LogExit($"Sync normalized: gain={song.NormalizationGain}");
                 return;
             }
 
-            _ = calculation.ContinueWith(task => song.NormalizationGain = task.Result,
-                CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+            // When async analysis completes, write the real gain back and
+            // immediately refresh the output volume so the corrected level
+            // takes effect while the track is still playing.
+            _ = calculation.ContinueWith(
+                task =>
+                {
+                    if (task.IsFaulted && task.Exception != null)
+                    {
+                        Logger.LogError("Async normalization failed", task.Exception);
+                    }
+                    else
+                    {
+                        song.NormalizationGain = task.Result;
+                        Logger.LogEvent("AsyncNormalizationComplete", $"path={path}, gain={task.Result}");
+                        // UpdateVolume reads currentSong.NormalizationGain directly,
+                        // so posting it here picks up the freshly computed gain.
+                        UpdateVolume();
+                    }
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnRanToCompletion,
+                TaskScheduler.Default);
+            Logger.LogExit("Started async normalization task");
         }
 
         private void CleanupOutput()
         {
-            songTimer?.Stop();
-            try { outputDevice?.Stop(); } catch { }
-            try { outputDevice?.Dispose(); } catch { }
-            outputDevice = null;
-            try { waveStream?.Dispose(); } catch { }
-            waveStream = null;
-            lastAppliedVolume = -1f;
+            lock (lockObj)
+            {
+                Logger.LogEntry();
+                songTimer?.Stop();
+                try { outputDevice?.Stop(); } catch (Exception ex) { Logger.LogError("CleanupOutput outputDevice.Stop", ex); }
+                try { outputDevice?.Dispose(); } catch (Exception ex) { Logger.LogError("CleanupOutput outputDevice.Dispose", ex); }
+                outputDevice = null;
+                try { waveStream?.Dispose(); } catch (Exception ex) { Logger.LogError("CleanupOutput waveStream.Dispose", ex); }
+                waveStream = null;
+                lastAppliedVolume = -1f;
+                Logger.LogExit();
+            }
         }
 
         private void SetupTimer()

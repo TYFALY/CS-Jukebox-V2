@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -75,12 +75,60 @@ namespace CS_Jukebox
         {
             RefreshParameters();
             SetupGameListener();
+            _ = CheckForUpdatesAsync();
         }
 
         void SetupGameListener()
         {
             Properties.CreateConfig();
             logic = new GameLogic();
+        }
+
+        private async Task CheckForUpdatesAsync()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("CS-Jukebox");
+                client.Timeout = TimeSpan.FromSeconds(10);
+
+                string json = await client.GetStringAsync("https://api.github.com/repos/TYFALY/CS-Jukebox-V2/releases/latest");
+                var release = JsonConvert.DeserializeObject<GitHubReleaseResponse>(json);
+                if (release == null || string.IsNullOrWhiteSpace(release.tag_name)) return;
+
+                string cleanTag = release.tag_name.Trim().TrimStart('v', 'V');
+                if (Version.TryParse(cleanTag, out Version latestVersion))
+                {
+                    Version currentVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
+                    if (latestVersion > currentVersion)
+                    {
+                        string message = $"A new version of CS Jukebox ({release.tag_name}) is available!\n\nWould you like to open the download page?";
+                        DialogResult result = MessageBox.Show(this, message, "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                        if (result == DialogResult.Yes)
+                        {
+                            string targetUrl = !string.IsNullOrWhiteSpace(release.html_url)
+                                ? release.html_url
+                                : "https://github.com/TYFALY/CS-Jukebox-V2/releases/latest";
+
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = targetUrl,
+                                UseShellExecute = true
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("CheckForUpdatesAsync failed", ex);
+            }
+        }
+
+        private class GitHubReleaseResponse
+        {
+            public string tag_name { get; set; }
+            public string html_url { get; set; }
         }
 
         //Refreshes controls that contain mutable data

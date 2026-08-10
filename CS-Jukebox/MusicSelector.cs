@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -21,6 +21,7 @@ namespace CS_Jukebox
         private readonly Button deathButton = new Button();
         private readonly Button deathPreviewButton = new Button();
         private readonly TextBox deathTextBox = new TextBox();
+        private readonly Button saveAsCopyButton = new Button();
 
         public MusicSelector(MusicKit newKit, bool? createKit)
         {
@@ -41,6 +42,12 @@ namespace CS_Jukebox
             AddExtraSongsButtons();
             EnsurePreviewButtonsVisible();
             ConfigurePreviewVolumeSynchronization();
+
+            saveAsCopyButton.Name = "saveAsCopyButton";
+            saveAsCopyButton.Text = "Save as Copy";
+            saveAsCopyButton.Size = new System.Drawing.Size(110, 27);
+            saveAsCopyButton.Click += saveAsCopyButton_Click;
+            Controls.Add(saveAsCopyButton);
 
             // Jukebox used for previewing individual tracks inside the editor
             previewJukebox = new Jukebox();
@@ -137,7 +144,13 @@ namespace CS_Jukebox
             nameTextBox.Location = new System.Drawing.Point(62, 11);
             nameTextBox.Size = new System.Drawing.Size(200, 23);
             deleteButton.Location = new System.Drawing.Point(272, 10);
+            saveButton.Text = "Apply Changes";
+            saveButton.Size = new System.Drawing.Size(110, 27);
             saveButton.Location = new System.Drawing.Point(12, 625);
+
+            saveAsCopyButton.Location = new System.Drawing.Point(130, 625);
+            saveAsCopyButton.Visible = !createMode;
+
             cancelButton.Location = new System.Drawing.Point(613, 625);
         }
 
@@ -281,50 +294,87 @@ namespace CS_Jukebox
         private void saveButton_Click(object sender, EventArgs e)
         {
             string kitName = nameTextBox.Text.Trim();
-            if (!Properties.TryValidateKitName(kitName, createMode ? null : originalKit, out string nameError))
+            bool isNameUnchanged = !createMode && originalKit != null && string.Equals(kitName, originalKit.Name, StringComparison.OrdinalIgnoreCase);
+
+            bool isValid = isNameUnchanged
+                ? Properties.TryValidateKitFileName(kitName, out string nameError)
+                : Properties.TryValidateKitName(kitName, createMode ? null : originalKit, out nameError);
+
+            if (!isValid)
             {
                 MessageBox.Show(nameError, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            CommitChanges(kitName, createMode);
+        }
+
+        private void saveAsCopyButton_Click(object sender, EventArgs e)
+        {
+            string kitName = nameTextBox.Text.Trim();
+            if (originalKit != null && string.Equals(kitName, originalKit.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Please enter a new unique name to save as a copy.", "Save as Copy", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!Properties.TryValidateKitName(kitName, null, out string nameError))
+            {
+                MessageBox.Show(nameError, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            CommitChanges(kitName, isCreate: true);
+        }
+
+        private void CommitChanges(string kitName, bool isCreate)
+        {
+            currentKit.freezeSong = GetSongFromParams(freezeTextBox, freezeTrackBar, freezeStartTextBox, currentKit.freezeSong);
+            currentKit.startSong = GetSongFromParams(startTextBox, startTrackBar, startStartTextBox, currentKit.startSong);
+            currentKit.bombSong = GetSongFromParams(bombTextBox, bombTrackBar, bombStartTextBox, currentKit.bombSong);
+            currentKit.winSong = GetSongFromParams(wonTextBox, wonTrackBar, wonStartTextBox, currentKit.winSong);
+            currentKit.loseSong = GetSongFromParams(lostTextBox, lostTrackBar, lostStartTextBox, currentKit.loseSong);
+            currentKit.MVPSong = GetSongFromParams(MVPTextBox, MVPTrackBar, MVPStartTextBox, currentKit.MVPSong);
+            currentKit.bombTenSecSong = GetSongFromParams(bombTenSecTextBox, bombTenSecTrackBar, bombTenSecStartBox, currentKit.bombTenSecSong);
+            currentKit.roundTenSecSong = GetSongFromParams(roundTenSecTextBox, roundTenSecTrackBar, roundTenSecStartBox, currentKit.roundTenSecSong);
+            currentKit.mainMenuSong = GetSongFromParams(menuTextBox, menuTrackBar, menuStartTextBox, currentKit.mainMenuSong);
+            currentKit.deathSong = GetSongFromParams(deathTextBox, deathTrackBar, deathStartTextBox, currentKit.deathSong);
+
+            if (isCreate)
+            {
+                currentKit.Name = kitName;
+                Properties.MusicKits.Add(currentKit);
+                Properties.SelectedKit = currentKit;
             }
             else
             {
-                currentKit.freezeSong = GetSongFromParams(freezeTextBox, freezeTrackBar, freezeStartTextBox, currentKit.freezeSong);
-                currentKit.startSong = GetSongFromParams(startTextBox, startTrackBar, startStartTextBox, currentKit.startSong);
-                currentKit.bombSong = GetSongFromParams(bombTextBox, bombTrackBar, bombStartTextBox, currentKit.bombSong);
-                currentKit.winSong = GetSongFromParams(wonTextBox, wonTrackBar, wonStartTextBox, currentKit.winSong);
-                currentKit.loseSong = GetSongFromParams(lostTextBox, lostTrackBar, lostStartTextBox, currentKit.loseSong);
-                currentKit.MVPSong = GetSongFromParams(MVPTextBox, MVPTrackBar, MVPStartTextBox, currentKit.MVPSong);
-                currentKit.bombTenSecSong = GetSongFromParams(bombTenSecTextBox, bombTenSecTrackBar, bombTenSecStartBox, currentKit.bombTenSecSong);
-                currentKit.roundTenSecSong = GetSongFromParams(roundTenSecTextBox, roundTenSecTrackBar, roundTenSecStartBox, currentKit.roundTenSecSong);
-                currentKit.mainMenuSong = GetSongFromParams(menuTextBox, menuTrackBar, menuStartTextBox, currentKit.mainMenuSong);
-                currentKit.deathSong = GetSongFromParams(deathTextBox, deathTrackBar, deathStartTextBox, currentKit.deathSong);
+                string originalName = originalKit?.Name;
+                if (!string.Equals(kitName, originalName, StringComparison.Ordinal))
+                    Properties.DeleteKitFile(originalName);
 
-                if (createMode)
-                {
-                    //Add kit to list if it is a new kit
-                    currentKit.Name = kitName;
-                    Properties.MusicKits.Add(currentKit);
-                    Properties.SelectedKit = currentKit;
-                }
+                currentKit.Name = kitName;
+                int kitIndex = Properties.MusicKits.IndexOf(originalKit);
+                if (kitIndex >= 0)
+                    Properties.MusicKits[kitIndex] = currentKit;
                 else
                 {
-                    string originalName = originalKit?.Name;
-                    if (!string.Equals(kitName, originalName, StringComparison.Ordinal))
-                        Properties.DeleteKitFile(originalName);
-
-                    currentKit.Name = kitName;
-                    int kitIndex = Properties.MusicKits.IndexOf(originalKit);
-                    if (kitIndex >= 0)
-                        Properties.MusicKits[kitIndex] = currentKit;
-
-                    if (ReferenceEquals(Properties.SelectedKit, originalKit))
-                        Properties.SelectedKit = currentKit;
+                    // Fallback if originalKit instance reference was changed
+                    int matchByNameIndex = Properties.MusicKits.FindIndex(k => k != null && string.Equals(k.Name, originalName, StringComparison.OrdinalIgnoreCase));
+                    if (matchByNameIndex >= 0)
+                        Properties.MusicKits[matchByNameIndex] = currentKit;
+                    else
+                        Properties.MusicKits.Add(currentKit);
                 }
 
-                Properties.Save();
-
-                //Add some form of delegate method to invoke in MainForm.cs
-                Close();
+                if (Properties.SelectedKit == null || ReferenceEquals(Properties.SelectedKit, originalKit) ||
+                    string.Equals(Properties.SelectedKit.Name, originalName, StringComparison.OrdinalIgnoreCase))
+                {
+                    Properties.SelectedKit = currentKit;
+                }
             }
+
+            Properties.Save();
+            Close();
         }
 
         //Returns a new SongProfile based on values of given form controls
