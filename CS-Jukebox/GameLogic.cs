@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using CSGSI;
@@ -6,7 +7,7 @@ using CSGSI.Nodes;
 
 namespace CS_Jukebox
 {
-    class GameLogic : IDisposable
+    public class GameLogic : IDisposable
     {
         public Jukebox jukebox;
 
@@ -94,27 +95,35 @@ namespace CS_Jukebox
             Logger.LogEntry($"Phase={gs.Round.Phase}, MusicState={musicState}");
             if (Properties.SelectedKit == null) return;
 
+            bool isLocal = string.IsNullOrWhiteSpace(gs.Provider.SteamID) ||
+                string.IsNullOrWhiteSpace(gs.Player.SteamID) ||
+                string.Equals(gs.Provider.SteamID, gs.Player.SteamID, StringComparison.OrdinalIgnoreCase);
+
             int currentMvpCount = gs.Player.MatchStats.MVPs;
-            if (currentMvpCount >= 0 && (playerMVPs < 0 || currentMvpCount < playerMVPs))
+            if (isLocal && currentMvpCount >= 0 && (playerMVPs < 0 || currentMvpCount < playerMVPs))
                 playerMVPs = currentMvpCount;
 
             if (gs.Map.JSON.Equals("{}") && musicState != MusicState.Menu)
             {
-                musicState = MusicState.Menu;
-                playerMVPs = -1;
-                Logger.LogEvent("TransitionToMenu", $"SelectedKit={Properties.SelectedKit.Name}");
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.mainMenuSong, Properties.SelectedKit.mainMenuSongs), true);
-                Console.WriteLine("Main Menu");
+                if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.mainMenuSong, Properties.SelectedKit.mainMenuSongs), true))
+                {
+                    musicState = MusicState.Menu;
+                    playerMVPs = -1;
+                    Logger.LogEvent("TransitionToMenu", $"SelectedKit={Properties.SelectedKit.Name}");
+                    Console.WriteLine("Main Menu");
+                }
             }
 
             if (gs.Round.Phase == RoundPhase.FreezeTime && musicState != MusicState.FreezeTime)
             {
-                musicState = MusicState.FreezeTime;
-                Logger.LogEvent("TransitionToFreezeTime", $"SelectedKit={Properties.SelectedKit.Name}");
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.freezeSong, Properties.SelectedKit.freezeSongs), false);
-                roundTenSecondPlayed = false;
-                bombTenSecondPlayed = false;
-                Console.WriteLine("FreezeTime Begun");
+                if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.freezeSong, Properties.SelectedKit.freezeSongs), false))
+                {
+                    musicState = MusicState.FreezeTime;
+                    Logger.LogEvent("TransitionToFreezeTime", $"SelectedKit={Properties.SelectedKit.Name}");
+                    roundTenSecondPlayed = false;
+                    bombTenSecondPlayed = false;
+                    Console.WriteLine("FreezeTime Begun");
+                }
             }
 
             if (musicState == MusicState.Menu)
@@ -132,21 +141,20 @@ namespace CS_Jukebox
             if (gs.Round.Phase == RoundPhase.Live && musicState != MusicState.Live && musicState != MusicState.BombPlanted)
             {
                 jukebox.Stop();
-                musicState = MusicState.Live;
-                Logger.LogEvent("TransitionToLive", $"SelectedKit={Properties.SelectedKit.Name}");
                 // Play the round-start track to completion, matching the behaviour
                 // of FreezeTime and MVP which also use the two-arg overload.
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.startSong, Properties.SelectedKit.startSongs), false);
-                Console.WriteLine("Round Begun");
+                if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.startSong, Properties.SelectedKit.startSongs), false))
+                {
+                    musicState = MusicState.Live;
+                    Logger.LogEvent("TransitionToLive", $"SelectedKit={Properties.SelectedKit.Name}");
+                    Console.WriteLine("Round Begun");
+                }
             }
 
             HandlePlayerDeath(gs);
 
             if (gs.Round.Phase == RoundPhase.Over && musicState != MusicState.Over)
             {
-                musicState = MusicState.Over;
-                Logger.LogEvent("TransitionToRoundOver", $"WinTeam={gs.Round.WinTeam}, PlayerTeam={gs.Player.Team}");
-
                 if (gs.Round.WinTeam == RoundWinTeam.T && gs.Player.Team == PlayerTeam.T)
                 {
                     RoundWin(gs);
@@ -158,18 +166,24 @@ namespace CS_Jukebox
                 else
                 {
                     //lose
-                    Logger.LogEvent("RoundLose");
-                    PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.loseSong, Properties.SelectedKit.loseSongs), false);
+                    if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.loseSong, Properties.SelectedKit.loseSongs), false))
+                    {
+                        musicState = MusicState.Over;
+                        Logger.LogEvent("TransitionToRoundOver", $"WinTeam={gs.Round.WinTeam}, PlayerTeam={gs.Player.Team}");
+                        Logger.LogEvent("RoundLose");
+                    }
                 }
             }
 
             if (gs.Round.Bomb == BombState.Planted && musicState != MusicState.BombPlanted)
             {
-                musicState = MusicState.BombPlanted;
-                bombTenSecondPlayed = false;
-                Logger.LogEvent("TransitionToBombPlanted");
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombSong, Properties.SelectedKit.bombSongs), false);
-                Console.WriteLine("Bomb Planted");
+                if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombSong, Properties.SelectedKit.bombSongs), false))
+                {
+                    musicState = MusicState.BombPlanted;
+                    bombTenSecondPlayed = false;
+                    Logger.LogEvent("TransitionToBombPlanted");
+                    Console.WriteLine("Bomb Planted");
+                }
             }
 
             HandleTenSecondCues(gs);
@@ -202,15 +216,38 @@ namespace CS_Jukebox
 
             if (!diedNow) return;
 
-            Console.WriteLine("Local player died");
-            Logger.LogEvent("PlayerDeathDetected");
-            PlaySongIfValid(
+            if (musicState == MusicState.BombPlanted || IsActiveBombCountdown(gs))
+            {
+                Logger.LogEvent("PlayerDeathSuppressed", "BombPlanted or active bomb countdown in progress");
+                return;
+            }
+
+            if (PlaySongIfValid(
                 Properties.SelectedKit.PickSong(Properties.SelectedKit.deathSong, Properties.SelectedKit.deathSongs),
                 false,
-                5);
+                5))
+            {
+                Console.WriteLine("Local player died");
+                Logger.LogEvent("PlayerDeathDetected");
+            }
         }
 
-        internal static bool IsLocalPlayerDeath(GameState gs, int lastKnownHealth)
+        public static bool IsActiveBombCountdown(GameState gs)
+        {
+            if (gs.Round.Bomb == BombState.Planted)
+                return true;
+
+            PhaseCountdownsNode countdown = gs.PhaseCountdowns;
+            if (countdown.Phase == PhaseCountdownsPhase.Bomb)
+                return true;
+
+            if (gs.Bomb.State == BombState.Planted)
+                return true;
+
+            return false;
+        }
+
+        public static bool IsLocalPlayerDeath(GameState gs, int lastKnownHealth)
         {
             int currentHealth = gs.Player.State.Health;
             int previousHealth = gs.Previously.Player.State.Health;
@@ -219,7 +256,7 @@ namespace CS_Jukebox
 
             bool isLocalPlayer = string.IsNullOrWhiteSpace(providerSteamId) ||
                 string.IsNullOrWhiteSpace(playerSteamId) ||
-                string.Equals(providerSteamId, playerSteamId, StringComparison.Ordinal);
+                string.Equals(providerSteamId, playerSteamId, StringComparison.OrdinalIgnoreCase);
 
             return isLocalPlayer &&
                 currentHealth == 0 &&
@@ -234,21 +271,25 @@ namespace CS_Jukebox
 
             if (cue == PhaseCountdownsPhase.Live && !roundTenSecondPlayed)
             {
-                roundTenSecondPlayed = true;
-                Console.WriteLine("Ten seconds left in round");
-                Logger.LogEvent("RoundTenSecondCue");
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.roundTenSecSong, Properties.SelectedKit.roundTenSecSongs), false);
+                if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.roundTenSecSong, Properties.SelectedKit.roundTenSecSongs), false))
+                {
+                    roundTenSecondPlayed = true;
+                    Console.WriteLine("Ten seconds left in round");
+                    Logger.LogEvent("RoundTenSecondCue");
+                }
             }
             else if (cue == PhaseCountdownsPhase.Bomb && !bombTenSecondPlayed)
             {
-                bombTenSecondPlayed = true;
-                Console.WriteLine("Ten seconds left on bomb");
-                Logger.LogEvent("BombTenSecondCue");
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false);
+                if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false))
+                {
+                    bombTenSecondPlayed = true;
+                    Console.WriteLine("Ten seconds left on bomb");
+                    Logger.LogEvent("BombTenSecondCue");
+                }
             }
         }
 
-        internal static PhaseCountdownsPhase GetTenSecondCue(GameState gs)
+        public static PhaseCountdownsPhase GetTenSecondCue(GameState gs)
         {
             PhaseCountdownsNode countdown = gs.PhaseCountdowns;
             float remaining = countdown.PhaseEndsIn;
@@ -276,20 +317,57 @@ namespace CS_Jukebox
             return PhaseCountdownsPhase.Undefined;
         }
 
+        public static bool IsLocalPlayerRoundMvp(GameState gs, int previousMVPs)
+        {
+            string localSteamId = !string.IsNullOrWhiteSpace(gs.Provider.SteamID) ? gs.Provider.SteamID : gs.Player.SteamID;
+
+            if (!string.IsNullOrWhiteSpace(gs.Round.MVP))
+            {
+                return !string.IsNullOrWhiteSpace(localSteamId) && string.Equals(gs.Round.MVP, localSteamId, StringComparison.OrdinalIgnoreCase);
+            }
+
+            bool isLocalPlayer = string.IsNullOrWhiteSpace(gs.Provider.SteamID) ||
+                string.IsNullOrWhiteSpace(gs.Player.SteamID) ||
+                string.Equals(gs.Provider.SteamID, gs.Player.SteamID, StringComparison.OrdinalIgnoreCase);
+
+            return isLocalPlayer && gs.Player.MatchStats.MVPs > previousMVPs;
+        }
+
         private void RoundWin(GameState gs)
         {
             Logger.LogEntry($"CurrentMVPs={gs.Player.MatchStats.MVPs}, PreviousMVPs={playerMVPs}");
-            //Check if player was MVP of the round
-            if (gs.Player.MatchStats.MVPs > playerMVPs)
+            bool isMvp = IsLocalPlayerRoundMvp(gs, playerMVPs);
+
+            SongProfile songToPlay;
+            string eventName;
+            if (isMvp)
             {
-                Logger.LogEvent("RoundWinMVP");
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.MVPSong, Properties.SelectedKit.MVPSongs), false);
-                playerMVPs = gs.Player.MatchStats.MVPs;
+                songToPlay = Properties.SelectedKit.PickSong(Properties.SelectedKit.MVPSong, Properties.SelectedKit.MVPSongs);
+                eventName = "RoundWinMVP";
             }
             else
             {
-                Logger.LogEvent("RoundWinRegular");
-                PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.winSong, Properties.SelectedKit.winSongs), false);
+                songToPlay = Properties.SelectedKit.PickSong(Properties.SelectedKit.winSong, Properties.SelectedKit.winSongs);
+                eventName = "RoundWinRegular";
+            }
+
+            if (PlaySongIfValid(songToPlay, false))
+            {
+                musicState = MusicState.Over;
+                Logger.LogEvent("TransitionToRoundOver", $"WinTeam={gs.Round.WinTeam}, PlayerTeam={gs.Player.Team}");
+                Logger.LogEvent(eventName, isMvp ? $"RoundMVP={gs.Round.MVP}" : "");
+            }
+
+            if (gs.Player.MatchStats.MVPs >= 0)
+            {
+                bool isLocalPlayer = string.IsNullOrWhiteSpace(gs.Provider.SteamID) ||
+                    string.IsNullOrWhiteSpace(gs.Player.SteamID) ||
+                    string.Equals(gs.Provider.SteamID, gs.Player.SteamID, StringComparison.OrdinalIgnoreCase);
+
+                if (isLocalPlayer)
+                {
+                    playerMVPs = gs.Player.MatchStats.MVPs;
+                }
             }
             Logger.LogExit();
         }

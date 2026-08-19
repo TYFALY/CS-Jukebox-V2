@@ -32,7 +32,11 @@ namespace CS_Jukebox
         public void PlaySong(string path)
         {
             Logger.LogEntry($"path={path}");
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return;
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            {
+                Logger.Log($"WARNING: Song file path is missing or invalid: '{path}'");
+                return;
+            }
             PlayPreviewSong(new SongProfile(path, 100));
         }
 
@@ -55,6 +59,7 @@ namespace CS_Jukebox
             Logger.LogEntry($"song={song?.Path}, loop={loop}");
             if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
             {
+                Logger.Log($"WARNING: Song file path is missing or invalid: '{song?.Path}'");
                 Logger.LogExit("Invalid song or missing file");
                 return;
             }
@@ -108,6 +113,7 @@ namespace CS_Jukebox
             Logger.LogEntry($"song={song?.Path}");
             if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
             {
+                Logger.Log($"WARNING: Song file path is missing or invalid: '{song?.Path}'");
                 Logger.LogExit("Invalid preview song or missing file");
                 return;
             }
@@ -166,7 +172,14 @@ namespace CS_Jukebox
         public void PlaySong(SongProfile song, bool loop, int duration)
         {
             Logger.LogEntry($"song={song?.Path}, loop={loop}, duration={duration}");
-            if (song == null || string.IsNullOrWhiteSpace(song.Path) || duration <= 0) return;
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path) || duration <= 0)
+            {
+                if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
+                {
+                    Logger.Log($"WARNING: Song file path is missing or invalid: '{song?.Path}'");
+                }
+                return;
+            }
             PlaySong(song, loop);
 
             if (!IsPlaybackActive()) return;
@@ -235,7 +248,11 @@ namespace CS_Jukebox
 
         private float PrepareNormalization(SongProfile song)
         {
-            if (song == null) return 1f;
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
+            {
+                Logger.Log($"WARNING: Song file path is missing or invalid for normalization: '{song?.Path}'");
+                return 1f;
+            }
             if (song.NormalizationGain > 0f) return song.NormalizationGain;
 
             if (AudioUtils.TryGetCachedNormalizationGain(song.Path, out float cachedGain))
@@ -356,6 +373,11 @@ namespace CS_Jukebox
         private void BeginNormalization(SongProfile song)
         {
             Logger.LogEntry($"path={song?.Path}");
+            if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
+            {
+                Logger.Log($"WARNING: Song file path is missing or invalid for normalization: '{song?.Path}'");
+                return;
+            }
             if (song.NormalizationGain > 0f)
             {
                 Logger.LogExit($"Already normalized: gain={song.NormalizationGain}");

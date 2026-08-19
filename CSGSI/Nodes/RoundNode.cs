@@ -20,12 +20,18 @@ namespace CSGSI.Nodes
         /// </summary>
         public RoundWinTeam WinTeam { get; set; }
 
+        /// <summary>
+        /// The SteamID of the player who was MVP of the current round.
+        /// </summary>
+        public string MVP { get; set; }
+
         internal RoundNode(string json)
             : base(json)
         {
             Phase = GetEnum<RoundPhase>("phase");
             Bomb = GetEnum<BombState>("bomb");
             WinTeam = GetEnum<RoundWinTeam>("win_team");
+            MVP = GetString("mvp");
         }
     }
 
