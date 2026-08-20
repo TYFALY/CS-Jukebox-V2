@@ -29,6 +29,12 @@
 
 https://github.com/user-attachments/assets/c1716a56-5743-4b0f-a908-a70c812e4016
 
+## 🎵 Community Custom Kits
+
+Download community-created kits or share your own on our official subreddit:
+
+👉 **[r/CSJukeboxV2Kits](https://www.reddit.com/r/CSJukeboxV2Kits)**
+
 ---
 ## 💡 About the Project
 
