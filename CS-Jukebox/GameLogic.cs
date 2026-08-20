@@ -19,6 +19,8 @@ namespace CS_Jukebox
         private bool bombTenSecondPlayed;
         private bool stopped;
         private int lastKnownPlayerHealth = -1;
+        private DateTime _bombPlantedTime;
+        private bool _hasPlayedBombTenSec;
 
         public GameLogic()
         {
@@ -181,8 +183,21 @@ namespace CS_Jukebox
                 {
                     musicState = MusicState.BombPlanted;
                     bombTenSecondPlayed = false;
+                    _bombPlantedTime = DateTime.Now;
+                    _hasPlayedBombTenSec = false;
                     Logger.LogEvent("TransitionToBombPlanted");
                     Console.WriteLine("Bomb Planted");
+                }
+            }
+
+            if (musicState == MusicState.BombPlanted && !_hasPlayedBombTenSec)
+            {
+                if ((gs.PhaseCountdowns.Phase == PhaseCountdownsPhase.Bomb && gs.PhaseCountdowns.PhaseEndsIn <= 10.0) ||
+                    (DateTime.Now - _bombPlantedTime).TotalSeconds >= 30.0)
+                {
+                    _hasPlayedBombTenSec = true;
+                    bombTenSecondPlayed = true;
+                    PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false);
                 }
             }
 
@@ -283,6 +298,7 @@ namespace CS_Jukebox
                 if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.bombTenSecSong, Properties.SelectedKit.bombTenSecSongs), false))
                 {
                     bombTenSecondPlayed = true;
+                    _hasPlayedBombTenSec = true;
                     Console.WriteLine("Ten seconds left on bomb");
                     Logger.LogEvent("BombTenSecondCue");
                 }
