@@ -143,9 +143,10 @@ namespace CS_Jukebox
             if (gs.Round.Phase == RoundPhase.Live && musicState != MusicState.Live && musicState != MusicState.BombPlanted)
             {
                 jukebox.Stop();
-                // Play the round-start track to completion, matching the behaviour
-                // of FreezeTime and MVP which also use the two-arg overload.
-                if (PlaySongIfValid(Properties.SelectedKit.PickSong(Properties.SelectedKit.startSong, Properties.SelectedKit.startSongs), false))
+                if (PlaySongIfValid(
+                    Properties.SelectedKit.PickSong(Properties.SelectedKit.startSong, Properties.SelectedKit.startSongs),
+                    false,
+                    MusicEventTiming.RoundStartSeconds))
                 {
                     musicState = MusicState.Live;
                     Logger.LogEvent("TransitionToLive", $"SelectedKit={Properties.SelectedKit.Name}");
@@ -240,7 +241,7 @@ namespace CS_Jukebox
             if (PlaySongIfValid(
                 Properties.SelectedKit.PickSong(Properties.SelectedKit.deathSong, Properties.SelectedKit.deathSongs),
                 false,
-                5))
+                MusicEventTiming.PlayerDeathSeconds))
             {
                 Console.WriteLine("Local player died");
                 Logger.LogEvent("PlayerDeathDetected");

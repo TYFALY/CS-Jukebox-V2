@@ -9,6 +9,7 @@ namespace CS_Jukebox
     /// <summary>Edits the optional tracks for one game event.</summary>
     public class AdditionalSongsForm : Form
     {
+        private readonly MusicEventType eventType;
         private readonly List<SongProfile> songs;
         private readonly ListBox songsList = new ListBox();
         private readonly TextBox pathTextBox = new TextBox();
@@ -16,20 +17,22 @@ namespace CS_Jukebox
         private readonly TextBox startMinutesTextBox = new TextBox();
         private readonly TextBox startSecondsTextBox = new TextBox();
         private readonly Jukebox previewJukebox = new Jukebox();
+        private readonly Button previewButton = new Button();
         private int selectedIndex = -1;
         private bool refreshingSongList;
         private SongProfile previewSong;
 
         public List<SongProfile> Songs => songs;
 
-        public AdditionalSongsForm(string eventName, IEnumerable<SongProfile> currentSongs)
+        public AdditionalSongsForm(MusicEventType eventType, IEnumerable<SongProfile> currentSongs)
         {
+            this.eventType = eventType;
             songs = currentSongs?
                 .Where(song => song != null)
                 .Select(song => new SongProfile(song.Path, song.Volume) { Start = song.Start, NormalizationGain = song.NormalizationGain })
                 .ToList() ?? new List<SongProfile>();
 
-            Text = eventName + " - Extra tracks";
+            Text = MusicEventTiming.GetDisplayName(eventType) + " - Extra tracks";
             Width = 580;
             Height = 330;
             MinimizeBox = false;
@@ -38,7 +41,9 @@ namespace CS_Jukebox
 
             BuildControls();
             RefreshSongList();
-            FormClosed += (sender, args) => previewJukebox.Dispose();
+            previewJukebox.PreviewCompleted += PreviewJukebox_PreviewCompleted;
+            FormClosed += AdditionalSongsForm_FormClosed;
+            ThemeManager.Apply(this);
         }
 
         private void BuildControls()
@@ -53,7 +58,8 @@ namespace CS_Jukebox
 
             var pathLabel = new Label { Text = "Audio file:", Left = 240, Top = 18, AutoSize = true };
             pathTextBox.SetBounds(240, 40, 180, 23);
-            var previewButton = new Button { Text = "▶", Left = 428, Top = 39, Width = 30, Height = 28 };
+            previewButton.Text = "▶";
+            previewButton.SetBounds(428, 39, 30, 28);
             previewButton.Click += (sender, args) => TogglePreview(previewButton);
             var browseButton = new Button { Text = "Browse...", Left = 478, Top = 39, Width = 78 };
             browseButton.Click += (sender, args) => BrowseForSong();
@@ -180,7 +186,10 @@ namespace CS_Jukebox
                     return;
                 }
 
-                previewJukebox.PlayPreviewSong(song);
+                if (Properties.LimitPreviewToEventDuration)
+                    previewJukebox.PlayPreviewSong(song, MusicEventTiming.GetPreviewDurationSeconds(eventType));
+                else
+                    previewJukebox.PlayPreviewSong(song);
                 previewSong = song;
                 previewButton.Text = "■";
             }
@@ -189,6 +198,24 @@ namespace CS_Jukebox
                 MessageBox.Show("Failed to preview file: " + ex.Message, "Preview error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void PreviewJukebox_PreviewCompleted(object sender, PreviewCompletedEventArgs e)
+        {
+            previewSong = null;
+            previewButton.Text = "▶";
+
+            if (IsDisposed || Disposing) return;
+            string message = e.Reason == PreviewCompletionReason.EventEnded
+                ? "Event ended before music."
+                : "Music ended before event.";
+            MessageBox.Show(this, message, "Preview complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void AdditionalSongsForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            previewJukebox.PreviewCompleted -= PreviewJukebox_PreviewCompleted;
+            previewJukebox.Dispose();
         }
 
         private void VolumeTrackBar_ValueChanged(object sender, EventArgs e)

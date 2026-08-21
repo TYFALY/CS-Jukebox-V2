@@ -23,6 +23,7 @@ namespace CS_Jukebox
             MinimizeBox = false;
             if (!string.IsNullOrWhiteSpace(Properties.GameDir))
                 dirTextBox.Text = Properties.GameDir;
+            ThemeManager.Apply(this);
         }
 
         //Open folder browser dialog
