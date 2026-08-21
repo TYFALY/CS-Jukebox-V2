@@ -53,6 +53,7 @@ Download community-created kits or share your own on our official subreddit:
 * **Independent Audio Engine:** Powered by [NAudio](https://github.com/naudio/NAudio) for low-latency playback without relying on legacy Windows Media Player components.
 * **Smart Steam Discovery:** Automatically scans all connected Steam libraries (`libraryfolders.vdf`) across your drives to locate CS2 and configure the integration file.
 *  **Intuitive Kit Dashboard:** Easily create, manage, switch, and test custom audio kits using `.mp3` and `.wav` formats.
+* **Comfortable Dark Theme:** Switch the complete interface to a soft blue-graphite palette from the main window; the preference is remembered automatically.
 
 ---
 ## 🚀 Getting Started
@@ -61,13 +62,14 @@ Download community-created kits or share your own on our official subreddit:
 
 1. Download the latest compiled release archive:  
    👉 **[Download CS-Jukebox V2 (Latest Release)](https://github.com/TYFALY/CS-Jukebox-V2/releases/latest)** *(Windows only)*
-2. Extract the downloaded archive to any folder on your PC.
+2. Place `CS-Jukebox.exe` in any writable folder on your PC.
 
 ---
 
 ## 📦 Installation & Setup
 
-1. Launch `CS-Jukebox.exe`.
+1. Launch `CS-Jukebox.exe`. (To avoid problems, place the application in a separate, empty folder.)
+   The application creates `properties.json`, `debug_log.txt`, and the `kits` folder beside the executable. Keep these items together when moving an existing portable installation.
 2. The application will automatically scan your Steam libraries and detect your CS2 installation directory.
    > [!TIP]
    > If automatic detection fails, click **Browse** and manually select your CS2 `game` folder:  
@@ -86,17 +88,18 @@ Download community-created kits or share your own on our official subreddit:
 
 > [!NOTE]  
 > Tracks exceeding the ideal duration will automatically cut off or fade smoothly when the next gameplay event triggers.
+> In the Music Selector, enable **Limit preview to event duration** to simulate the fixed preview window below. **Start At** changes the source offset, not the length of that window. The option also applies to previews in **Extra tracks**.
 
-| Event / Track | Minimum Length | Ideal Duration | Behavior & Engine Context |
-| :--- | :---: | :---: | :--- |
-| **Main Menu** | Loopable | Ambient / Seamless | Loops continuously while in the main menu or lobby. |
-| **Freeze Time** | 10 sec | 10–15 sec | Plays during the pre-round buy phase (15s timer). |
-| **Round Start** | 5 sec | 5–10 sec | Plays at round start; automatically fades out after ~5s. |
-| **Bomb Planted** | 30 sec | 30 sec | Plays on bomb plant (Premier bomb timer is 40s total). |
-| **10-Sec Warning** | 10 sec | **Exactly 10 sec** | Plays when exactly 10s remain on round or bomb timer. |
-| **MVP Anthem** | **7 sec** | **7 sec** | Plays when you earn round MVP; fades into the next freeze time. |
-| **Round Won / Lost** | **7 sec** | **7 sec** | Fallback round-end track played when you are not the MVP. |
-| **Player Death** | 3 sec | 3–5 sec | Secondary audio cue triggered immediately when you die. |
+| Event / Track | Minimum Length | Ideal Duration | Limited Preview | Behavior & Engine Context |
+| :--- | :---: | :---: | :---: | :--- |
+| **Main Menu** | Loopable | Ambient / Seamless | Until file ends | Loops continuously while in the main menu or lobby. |
+| **Freeze Time** | 10 sec | 10–15 sec | **15 sec** | Plays during the pre-round buy phase (15s timer). |
+| **Round Start** | 5 sec | 5–10 sec | **5 sec** | Plays at round start; automatically fades out after ~5s. |
+| **Bomb Planted** | 30 sec | 30 sec | **30 sec** | Plays on bomb plant (Premier bomb timer is 40s total). |
+| **10-Sec Warning** | 10 sec | **Exactly 10 sec** | **10 sec** | Plays when exactly 10s remain on round or bomb timer. |
+| **MVP Anthem** | **7 sec** | **7 sec** | **7 sec** | Plays when you earn round MVP; fades into the next freeze time. |
+| **Round Won / Lost** | **7 sec** | **7 sec** | **7 sec** | Fallback round-end track played when you are not the MVP. |
+| **Player Death** | 3 sec | 3–5 sec | **5 sec** | Secondary audio cue triggered immediately when you die. |
 
 ### How to Create & Assign Kits
 
@@ -138,17 +141,19 @@ Make sure you have the following installed:
 git clone https://github.com/TYFALY/CS-Jukebox-V2.git
 cd CS-Jukebox-V2
 
-# 2. Build the project in Release configuration
-dotnet build -c Release
+# 2. Publish the compressed, self-contained single-file release
+dotnet publish ./CS-Jukebox/CS-Jukebox.csproj -c Release
 ```
 
 ### Output Location
 
-After a successful build, the executable will be available at:
+After a successful publish, the only distributed file will be available at:
 
 ```text
-bin/Release/net8.0-windows/CS-Jukebox.exe
+CS-Jukebox/bin/Release/net8.0-windows/win-x64/publish/CS-Jukebox.exe
 ```
+
+The GSI configuration is embedded in the executable and installed into the CS2 configuration directory automatically. Runtime settings and music kits remain portable beside `CS-Jukebox.exe`.
 
 ---
 ## ❓ Troubleshooting
@@ -168,7 +173,7 @@ CS-Jukebox scans your Steam directories via `libraryfolders.vdf`. If automatic d
 
 1. Ensure `CS-Jukebox.exe` is running while playing.
 2. Verify that the GSI config file was created at:  
-   `...\Counter-Strike Global Offensive\game\csgo\cfg\gamestate_integration_csjukebox.cfg`
+   `...\Counter-Strike Global Offensive\game\csgo\cfg\gamestate_integration_jukebox.cfg`
 3. Restart Counter-Strike 2 so the game engine loads the integration file.
 4. Verify your audio tracks are valid, uncorrupted `.mp3` or `.wav` files.
 </details>

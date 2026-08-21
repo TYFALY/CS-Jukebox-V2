@@ -39,6 +39,7 @@ namespace CS_Jukebox
             this.editButton = new System.Windows.Forms.Button();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.autoCheckBox = new System.Windows.Forms.CheckBox();
+            this.darkThemeCheckBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -131,19 +132,31 @@ namespace CS_Jukebox
             // autoCheckBox
             // 
             this.autoCheckBox.AutoSize = true;
-            this.autoCheckBox.Location = new System.Drawing.Point(139, 107);
+            this.autoCheckBox.Location = new System.Drawing.Point(139, 133);
             this.autoCheckBox.Name = "autoCheckBox";
             this.autoCheckBox.Size = new System.Drawing.Size(138, 19);
-            this.autoCheckBox.TabIndex = 7;
+            this.autoCheckBox.TabIndex = 10;
             this.autoCheckBox.Text = "Autostart CS Jukebox";
             this.autoCheckBox.UseVisualStyleBackColor = true;
             this.autoCheckBox.CheckedChanged += new System.EventHandler(this.autoCheckBox_CheckedChanged);
-            // 
+            //
+            // darkThemeCheckBox
+            //
+            this.darkThemeCheckBox.AutoSize = true;
+            this.darkThemeCheckBox.Location = new System.Drawing.Point(139, 106);
+            this.darkThemeCheckBox.Name = "darkThemeCheckBox";
+            this.darkThemeCheckBox.Size = new System.Drawing.Size(88, 19);
+            this.darkThemeCheckBox.TabIndex = 7;
+            this.darkThemeCheckBox.Text = "Dark theme";
+            this.darkThemeCheckBox.UseVisualStyleBackColor = true;
+            this.darkThemeCheckBox.CheckedChanged += new System.EventHandler(this.darkThemeCheckBox_CheckedChanged);
+            //
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(285, 135);
+            this.ClientSize = new System.Drawing.Size(285, 162);
+            this.Controls.Add(this.darkThemeCheckBox);
             this.Controls.Add(this.autoCheckBox);
             this.Controls.Add(this.importButton);
             this.Controls.Add(this.exportButton);
@@ -175,6 +188,7 @@ namespace CS_Jukebox
         private System.Windows.Forms.Button editButton;
         private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.CheckBox autoCheckBox;
+        private System.Windows.Forms.CheckBox darkThemeCheckBox;
     }
 }
 

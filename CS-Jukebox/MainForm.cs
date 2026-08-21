@@ -18,6 +18,7 @@ namespace CS_Jukebox
         static extern bool AllocConsole();
 
         private GameLogic logic;
+        private bool initializingTheme;
 
         public MainForm()
         {
@@ -26,9 +27,11 @@ namespace CS_Jukebox
             //AllocConsole(); //Enable console
             MaximizeBox = false;
 
-            // Use default system theme (no custom theming applied)
-
             Properties.Load();
+            initializingTheme = true;
+            darkThemeCheckBox.Checked = Properties.DarkTheme;
+            initializingTheme = false;
+            ThemeManager.Apply(this);
 
             // If GameDir is missing or invalid, attempt auto-detection of CS2 install.
             bool gameDirValid = false;
@@ -557,6 +560,15 @@ namespace CS_Jukebox
         private void autoCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             RegisterInStartup(autoCheckBox.Checked);
+        }
+
+        private void darkThemeCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializingTheme) return;
+
+            Properties.DarkTheme = darkThemeCheckBox.Checked;
+            ThemeManager.ApplyToOpenForms();
+            Properties.SaveProperties();
         }
 
         private async void exportButton_Click(object sender, EventArgs e)

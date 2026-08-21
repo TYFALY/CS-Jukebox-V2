@@ -7,12 +7,25 @@
     <UseWindowsForms>true</UseWindowsForms>
     <StartupObject>CS_Jukebox.Program</StartupObject>
     <ApplicationIcon>logo.ico</ApplicationIcon>
+    <Version>1.3.3</Version>     <!-- Don't forget about us !!! -->
+    <AssemblyVersion>1.3.3.0</AssemblyVersion> <!-- Don't forget about us !!! -->
+    <FileVersion>1.3.3.0</FileVersion> <!-- Don't forget about us !!! -->
     <!-- Publish as self-contained by default to avoid requiring pre-installed runtime on target machines -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSelfContained>true</PublishSelfContained>
+    <!-- Portable release: bundle the runtime and native audio dependencies into one executable. -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <!-- Avoid aggressive trimming for compatibility with dynamic serialization and audio codecs -->
     <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,9 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="gamestate_integration_jukebox.cfg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="gamestate_integration_jukebox.cfg"
+                      LogicalName="CS_Jukebox.gamestate_integration_jukebox.cfg" />
   </ItemGroup>
 
 </Project>
