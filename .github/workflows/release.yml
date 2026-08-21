@@ -1,0 +1,34 @@
+name: Build & Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Publish Single-File Executable
+      run: |
+        dotnet publish ./CS-Jukebox/CS-Jukebox.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./publish
+
+    - name: Create Zip Archive
+      run: |
+        Compress-Archive -Path ./publish/CS-Jukebox.exe -DestinationPath ./CS-Jukebox-v1.3.3.zip
+
+    - name: Publish Release to GitHub
+      uses: softprops/action-gh-release@v1
+      with:
+        files: CS-Jukebox-v1.3.3.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
