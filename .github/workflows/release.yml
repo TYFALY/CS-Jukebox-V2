@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -24,11 +27,11 @@ jobs:
 
     - name: Create Zip Archive
       run: |
-        Compress-Archive -Path ./publish/CS-Jukebox.exe -DestinationPath ./CS-Jukebox-v1.3.3.zip
+        Compress-Archive -Path ./publish/CS-Jukebox.exe -DestinationPath ./CS-Jukebox-${{ github.ref_name }}.zip
 
     - name: Publish Release to GitHub
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        files: CS-Jukebox-v1.3.3.zip
+        files: CS-Jukebox-${{ github.ref_name }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
