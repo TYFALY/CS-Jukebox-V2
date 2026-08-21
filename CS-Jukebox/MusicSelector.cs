@@ -13,6 +13,7 @@ namespace CS_Jukebox
         private Jukebox previewJukebox;
         private SongProfile previewSong;
         private TrackBar previewVolumeTrackBar;
+        private MusicEventType? previewEventType;
         private readonly Dictionary<TextBox, (TextBox Minutes, TextBox Seconds)> startTimeControls = new();
         private readonly GroupBox deathGroup = new GroupBox();
         private readonly Label deathStartLabel = new Label();
@@ -22,12 +23,14 @@ namespace CS_Jukebox
         private readonly Button deathPreviewButton = new Button();
         private readonly TextBox deathTextBox = new TextBox();
         private readonly Button saveAsCopyButton = new Button();
+        private readonly CheckBox previewDurationCheckBox = new CheckBox();
 
         public MusicSelector(MusicKit newKit, bool? createKit)
         {
             InitializeComponent();
             CreateDeathScenarioControls();
             CreateStartTimeControls();
+            CreatePreviewDurationControl();
             ConfigureEditorLayout();
             MaximizeBox = false;
 
@@ -48,10 +51,13 @@ namespace CS_Jukebox
             saveAsCopyButton.Size = new System.Drawing.Size(110, 27);
             saveAsCopyButton.Click += saveAsCopyButton_Click;
             Controls.Add(saveAsCopyButton);
+            saveAsCopyButton.Visible = !createMode;
 
             // Jukebox used for previewing individual tracks inside the editor
             previewJukebox = new Jukebox();
+            previewJukebox.PreviewCompleted += PreviewJukebox_PreviewCompleted;
             FormClosed += MusicSelector_FormClosed;
+            ThemeManager.Apply(this);
         }
 
         private void MusicSelector_Load(object sender, EventArgs e)
@@ -96,7 +102,7 @@ namespace CS_Jukebox
             deathPreviewButton.Name = "deathPreviewButton";
             deathPreviewButton.Text = "▶";
             deathPreviewButton.Click += (sender, args) =>
-                TogglePreview(deathTextBox, deathTrackBar, deathStartTextBox, deathPreviewButton);
+                TogglePreview(deathTextBox, deathTrackBar, deathStartTextBox, deathPreviewButton, MusicEventType.PlayerDeath);
 
             deathTextBox.Name = "deathTextBox";
 
@@ -106,6 +112,16 @@ namespace CS_Jukebox
                 deathButton, deathPreviewButton, deathTextBox
             });
             Controls.Add(deathGroup);
+        }
+
+        private void CreatePreviewDurationControl()
+        {
+            previewDurationCheckBox.Name = "previewDurationCheckBox";
+            previewDurationCheckBox.Text = "Limit preview to event duration";
+            previewDurationCheckBox.AutoSize = true;
+            previewDurationCheckBox.Checked = Properties.LimitPreviewToEventDuration;
+            previewDurationCheckBox.CheckedChanged += PreviewDurationCheckBox_CheckedChanged;
+            Controls.Add(previewDurationCheckBox);
         }
 
         private void AddStartTimeControls(GroupBox group, Label label, TextBox legacyTextBox)
@@ -144,6 +160,7 @@ namespace CS_Jukebox
             nameTextBox.Location = new System.Drawing.Point(62, 11);
             nameTextBox.Size = new System.Drawing.Size(200, 23);
             deleteButton.Location = new System.Drawing.Point(272, 10);
+            previewDurationCheckBox.Location = new System.Drawing.Point(370, 13);
             saveButton.Text = "Apply Changes";
             saveButton.Size = new System.Drawing.Size(110, 27);
             saveButton.Location = new System.Drawing.Point(12, 625);
@@ -205,7 +222,35 @@ namespace CS_Jukebox
 
         private void MusicSelector_FormClosed(object sender, FormClosedEventArgs e)
         {
+            if (previewJukebox != null)
+                previewJukebox.PreviewCompleted -= PreviewJukebox_PreviewCompleted;
             previewJukebox?.Dispose();
+        }
+
+        private void PreviewDurationCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Properties.LimitPreviewToEventDuration = previewDurationCheckBox.Checked;
+            Properties.SaveProperties();
+
+            previewJukebox?.StopImmediately();
+            previewSong = null;
+            previewVolumeTrackBar = null;
+            previewEventType = null;
+            ResetPreviewButtonTexts();
+        }
+
+        private void PreviewJukebox_PreviewCompleted(object sender, PreviewCompletedEventArgs e)
+        {
+            previewSong = null;
+            previewVolumeTrackBar = null;
+            previewEventType = null;
+            ResetPreviewButtonTexts();
+
+            if (IsDisposed || Disposing) return;
+            string message = e.Reason == PreviewCompletionReason.EventEnded
+                ? "Event ended."
+                : "Music ended.";
+            MessageBox.Show(this, message, "Preview complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void ConfigurePreviewVolumeSynchronization()
@@ -233,19 +278,19 @@ namespace CS_Jukebox
 
         private void AddExtraSongsButtons()
         {
-            AddExtraSongsButton(freezeGroup, "Freeze Time", () => currentKit.freezeSongs, songs => currentKit.freezeSongs = songs);
-            AddExtraSongsButton(startGroup, "Round Start", () => currentKit.startSongs, songs => currentKit.startSongs = songs);
-            AddExtraSongsButton(bombGroup, "Bomb Planted", () => currentKit.bombSongs, songs => currentKit.bombSongs = songs);
-            AddExtraSongsButton(wonGroup, "Round Won", () => currentKit.winSongs, songs => currentKit.winSongs = songs);
-            AddExtraSongsButton(lostGroup, "Round Lost", () => currentKit.loseSongs, songs => currentKit.loseSongs = songs);
-            AddExtraSongsButton(MVPGroup, "MVP", () => currentKit.MVPSongs, songs => currentKit.MVPSongs = songs);
-            AddExtraSongsButton(bombTenSecBox1, "Bomb: 10 seconds", () => currentKit.bombTenSecSongs, songs => currentKit.bombTenSecSongs = songs);
-            AddExtraSongsButton(roundTenSecBox, "Round: 10 seconds", () => currentKit.roundTenSecSongs, songs => currentKit.roundTenSecSongs = songs);
-            AddExtraSongsButton(mainMenuGroupBox, "Main Menu", () => currentKit.mainMenuSongs, songs => currentKit.mainMenuSongs = songs);
-            AddExtraSongsButton(deathGroup, "Player Death", () => currentKit.deathSongs, songs => currentKit.deathSongs = songs);
+            AddExtraSongsButton(freezeGroup, MusicEventType.FreezeTime, () => currentKit.freezeSongs, songs => currentKit.freezeSongs = songs);
+            AddExtraSongsButton(startGroup, MusicEventType.RoundStart, () => currentKit.startSongs, songs => currentKit.startSongs = songs);
+            AddExtraSongsButton(bombGroup, MusicEventType.BombPlanted, () => currentKit.bombSongs, songs => currentKit.bombSongs = songs);
+            AddExtraSongsButton(wonGroup, MusicEventType.RoundWon, () => currentKit.winSongs, songs => currentKit.winSongs = songs);
+            AddExtraSongsButton(lostGroup, MusicEventType.RoundLost, () => currentKit.loseSongs, songs => currentKit.loseSongs = songs);
+            AddExtraSongsButton(MVPGroup, MusicEventType.Mvp, () => currentKit.MVPSongs, songs => currentKit.MVPSongs = songs);
+            AddExtraSongsButton(bombTenSecBox1, MusicEventType.BombTenSeconds, () => currentKit.bombTenSecSongs, songs => currentKit.bombTenSecSongs = songs);
+            AddExtraSongsButton(roundTenSecBox, MusicEventType.RoundTenSeconds, () => currentKit.roundTenSecSongs, songs => currentKit.roundTenSecSongs = songs);
+            AddExtraSongsButton(mainMenuGroupBox, MusicEventType.MainMenu, () => currentKit.mainMenuSongs, songs => currentKit.mainMenuSongs = songs);
+            AddExtraSongsButton(deathGroup, MusicEventType.PlayerDeath, () => currentKit.deathSongs, songs => currentKit.deathSongs = songs);
         }
 
-        private void AddExtraSongsButton(GroupBox group, string eventName,
+        private void AddExtraSongsButton(GroupBox group, MusicEventType eventType,
             Func<List<SongProfile>> getSongs, Action<List<SongProfile>> setSongs)
         {
             var button = new Button
@@ -263,8 +308,9 @@ namespace CS_Jukebox
                 previewJukebox.StopImmediately();
                 previewSong = null;
                 previewVolumeTrackBar = null;
+                previewEventType = null;
                 ResetPreviewButtonTexts();
-                using var editor = new AdditionalSongsForm(eventName, getSongs());
+                using var editor = new AdditionalSongsForm(eventType, getSongs());
                 if (editor.ShowDialog(this) == DialogResult.OK)
                 {
                     setSongs(editor.Songs);
@@ -502,7 +548,8 @@ namespace CS_Jukebox
         }
 
         // Preview button handlers
-        private void TogglePreview(TextBox textBox, TrackBar volumeTrackBar, TextBox startTextBox, Button previewButton)
+        private void TogglePreview(TextBox textBox, TrackBar volumeTrackBar, TextBox startTextBox,
+            Button previewButton, MusicEventType eventType)
         {
             string path = textBox.Text;
             if (string.IsNullOrWhiteSpace(path))
@@ -517,19 +564,24 @@ namespace CS_Jukebox
 
                 // If these exact parameters are already playing, stop preview.
                 if (previewSong != null && previewSong.Path == song.Path && previewSong.Volume == song.Volume &&
-                    previewSong.Start == song.Start && previewJukebox.IsPlaybackActive())
+                    previewSong.Start == song.Start && previewEventType == eventType && previewJukebox.IsPlaybackActive())
                 {
                     previewJukebox.Stop();
                     previewSong = null;
                     previewVolumeTrackBar = null;
+                    previewEventType = null;
                     previewButton.Text = "▶";
                     return;
                 }
 
                 // Preview exactly what will play in-game: volume and offset.
-                previewJukebox.PlayPreviewSong(song);
+                if (Properties.LimitPreviewToEventDuration)
+                    previewJukebox.PlayPreviewSong(song, MusicEventTiming.GetPreviewDurationSeconds(eventType));
+                else
+                    previewJukebox.PlayPreviewSong(song);
                 previewSong = song;
                 previewVolumeTrackBar = volumeTrackBar;
+                previewEventType = eventType;
 
                 ResetPreviewButtonTexts();
 
@@ -556,15 +608,15 @@ namespace CS_Jukebox
             }
         }
 
-        private void freezePreviewButton_Click(object sender, EventArgs e) => TogglePreview(freezeTextBox, freezeTrackBar, freezeStartTextBox, freezePreviewButton);
-        private void startPreviewButton_Click(object sender, EventArgs e) => TogglePreview(startTextBox, startTrackBar, startStartTextBox, startPreviewButton);
-        private void bombPreviewButton_Click(object sender, EventArgs e) => TogglePreview(bombTextBox, bombTrackBar, bombStartTextBox, bombPreviewButton);
-        private void wonPreviewButton_Click(object sender, EventArgs e) => TogglePreview(wonTextBox, wonTrackBar, wonStartTextBox, wonPreviewButton);
-        private void lostPreviewButton_Click(object sender, EventArgs e) => TogglePreview(lostTextBox, lostTrackBar, lostStartTextBox, lostPreviewButton);
-        private void MVPPreviewButton_Click(object sender, EventArgs e) => TogglePreview(MVPTextBox, MVPTrackBar, MVPStartTextBox, MVPPreviewButton);
-        private void bombTenSecPreviewButton_Click(object sender, EventArgs e) => TogglePreview(bombTenSecTextBox, bombTenSecTrackBar, bombTenSecStartBox, bombTenSecPreviewButton);
-        private void roundTenSecPreviewButton_Click(object sender, EventArgs e) => TogglePreview(roundTenSecTextBox, roundTenSecTrackBar, roundTenSecStartBox, roundTenSecPreviewButton);
-        private void menuPreviewButton_Click(object sender, EventArgs e) => TogglePreview(menuTextBox, menuTrackBar, menuStartTextBox, menuPreviewButton);
+        private void freezePreviewButton_Click(object sender, EventArgs e) => TogglePreview(freezeTextBox, freezeTrackBar, freezeStartTextBox, freezePreviewButton, MusicEventType.FreezeTime);
+        private void startPreviewButton_Click(object sender, EventArgs e) => TogglePreview(startTextBox, startTrackBar, startStartTextBox, startPreviewButton, MusicEventType.RoundStart);
+        private void bombPreviewButton_Click(object sender, EventArgs e) => TogglePreview(bombTextBox, bombTrackBar, bombStartTextBox, bombPreviewButton, MusicEventType.BombPlanted);
+        private void wonPreviewButton_Click(object sender, EventArgs e) => TogglePreview(wonTextBox, wonTrackBar, wonStartTextBox, wonPreviewButton, MusicEventType.RoundWon);
+        private void lostPreviewButton_Click(object sender, EventArgs e) => TogglePreview(lostTextBox, lostTrackBar, lostStartTextBox, lostPreviewButton, MusicEventType.RoundLost);
+        private void MVPPreviewButton_Click(object sender, EventArgs e) => TogglePreview(MVPTextBox, MVPTrackBar, MVPStartTextBox, MVPPreviewButton, MusicEventType.Mvp);
+        private void bombTenSecPreviewButton_Click(object sender, EventArgs e) => TogglePreview(bombTenSecTextBox, bombTenSecTrackBar, bombTenSecStartBox, bombTenSecPreviewButton, MusicEventType.BombTenSeconds);
+        private void roundTenSecPreviewButton_Click(object sender, EventArgs e) => TogglePreview(roundTenSecTextBox, roundTenSecTrackBar, roundTenSecStartBox, roundTenSecPreviewButton, MusicEventType.RoundTenSeconds);
+        private void menuPreviewButton_Click(object sender, EventArgs e) => TogglePreview(menuTextBox, menuTrackBar, menuStartTextBox, menuPreviewButton, MusicEventType.MainMenu);
 
         private void freezeStartTextbox_KeyPress(object sender, KeyPressEventArgs e)
         {

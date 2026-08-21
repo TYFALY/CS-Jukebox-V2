@@ -22,6 +22,10 @@ namespace CS_Jukebox
 
         private bool isPlaying = false;
         private long scheduledStopAtMilliseconds;
+        private bool previewCompletionPending;
+        private long previewStopAtMilliseconds;
+
+        public event EventHandler<PreviewCompletedEventArgs> PreviewCompleted;
 
         public Jukebox()
         {
@@ -110,7 +114,24 @@ namespace CS_Jukebox
 
         public void PlayPreviewSong(SongProfile song)
         {
-            Logger.LogEntry($"song={song?.Path}");
+            PlayPreviewSongInternal(song, null, false);
+        }
+
+        /// <summary>
+        /// Plays a preview and reports why it completed. A null duration keeps
+        /// the preview unbounded but still reports when the source file ends.
+        /// </summary>
+        public void PlayPreviewSong(SongProfile song, int? durationSeconds)
+        {
+            if (durationSeconds.HasValue && durationSeconds.Value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(durationSeconds));
+
+            PlayPreviewSongInternal(song, durationSeconds, true);
+        }
+
+        private void PlayPreviewSongInternal(SongProfile song, int? durationSeconds, bool reportCompletion)
+        {
+            Logger.LogEntry($"song={song?.Path}, duration={durationSeconds?.ToString() ?? "unbounded"}, reportCompletion={reportCompletion}");
             if (song == null || string.IsNullOrWhiteSpace(song.Path) || !File.Exists(song.Path))
             {
                 Logger.Log($"WARNING: Song file path is missing or invalid: '{song?.Path}'");
@@ -121,6 +142,7 @@ namespace CS_Jukebox
             lock (lockObj)
             {
                 CancelScheduledStopInternal();
+                CancelPreviewCompletionInternal();
                 CancelFadeInternal();
                 previewMode = true;
                 currentSong = song;
@@ -144,12 +166,17 @@ namespace CS_Jukebox
                     outputDevice = new WaveOutEvent();
                     outputDevice.Init(waveStream);
                     outputDevice.Play();
+                    previewCompletionPending = reportCompletion;
+                    previewStopAtMilliseconds = durationSeconds.HasValue
+                        ? Environment.TickCount64 + (durationSeconds.Value * 1000L)
+                        : 0;
                     songTimer.Start();
                     Logger.LogExit("Preview playback started successfully");
                 }
                 catch (Exception ex)
                 {
                     Logger.LogError("PlayPreviewSong failed", ex);
+                    CancelPreviewCompletionInternal();
                     CleanupOutput();
                     throw new InvalidOperationException("The selected audio file could not be played.", ex);
                 }
@@ -272,6 +299,7 @@ namespace CS_Jukebox
             lock (lockObj)
             {
                 CancelScheduledStopInternal();
+                CancelPreviewCompletionInternal();
                 if (!IsPlaybackActive())
                 {
                     CleanupOutput();
@@ -347,6 +375,12 @@ namespace CS_Jukebox
             scheduledStopAtMilliseconds = 0;
         }
 
+        private void CancelPreviewCompletionInternal()
+        {
+            previewCompletionPending = false;
+            previewStopAtMilliseconds = 0;
+        }
+
         private void CancelFadeInternal()
         {
             CancellationTokenSource cts;
@@ -364,6 +398,7 @@ namespace CS_Jukebox
             lock (lockObj)
             {
                 CancelScheduledStopInternal();
+                CancelPreviewCompletionInternal();
                 CancelFadeInternal();
                 CleanupOutput();
             }
@@ -452,11 +487,28 @@ namespace CS_Jukebox
 
             if (outputDevice.PlaybackState == PlaybackState.Stopped && fadeCts == null)
             {
+                bool reportMusicEnded = previewCompletionPending;
                 CancelScheduledStopInternal();
+                CancelPreviewCompletionInternal();
                 lock (lockObj)
                 {
                     CleanupOutput();
                 }
+                if (reportMusicEnded)
+                    OnPreviewCompleted(PreviewCompletionReason.MusicEnded);
+                return;
+            }
+
+            if (previewCompletionPending && previewStopAtMilliseconds > 0 &&
+                Environment.TickCount64 >= previewStopAtMilliseconds)
+            {
+                CancelScheduledStopInternal();
+                CancelPreviewCompletionInternal();
+                lock (lockObj)
+                {
+                    CleanupOutput();
+                }
+                OnPreviewCompleted(PreviewCompletionReason.EventEnded);
                 return;
             }
 
@@ -467,6 +519,18 @@ namespace CS_Jukebox
             }
 
             UpdateVolume();
+        }
+
+        private void OnPreviewCompleted(PreviewCompletionReason reason)
+        {
+            try
+            {
+                PreviewCompleted?.Invoke(this, new PreviewCompletedEventArgs(reason));
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("PreviewCompleted handler failed", ex);
+            }
         }
 
         private static bool IsGameFocused()

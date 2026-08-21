@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
@@ -17,6 +18,8 @@ namespace CS_Jukebox
 
         public static string GameDir = null;
         public static int MasterVolume = 70;
+        public static bool LimitPreviewToEventDuration = false;
+        public static bool DarkTheme = false;
         public static MusicKit SelectedKit
         {
             get { return selectedKit; }
@@ -26,7 +29,8 @@ namespace CS_Jukebox
         public static List<MusicKit> MusicKits = null;
 
         private static string startDir;
-        private static string appDir;
+        private static bool dataDirectoryWritable = true;
+        private const string ConfigResourceName = "CS_Jukebox.gamestate_integration_jukebox.cfg";
 
         public static string KitsDirectory => Path.Combine(startDir ?? GetAppDirectory(), MusicKitsPath);
 
@@ -50,12 +54,16 @@ namespace CS_Jukebox
         //Converts settings to json file then saves it
         public static void SaveProperties()
         {
+            if (!dataDirectoryWritable) return;
+
             string dir = Path.Combine(startDir, PropertiesFilePath);
 
             PropertiesFile propFile = new PropertiesFile();
             propFile.GameDir = GameDir;
             propFile.SelectedKitName = SelectedKitName;
             propFile.MasterVolume = MasterVolume;
+            propFile.LimitPreviewToEventDuration = LimitPreviewToEventDuration;
+            propFile.DarkTheme = DarkTheme;
 
             string jsonFile = JsonConvert.SerializeObject(propFile);
             try
@@ -71,8 +79,7 @@ namespace CS_Jukebox
         //Reads properties file then deserializes it
         public static void LoadProperties()
         {
-            appDir = GetAppDirectory();
-            startDir = GetDataDirectory(appDir);
+            startDir = GetDataDirectory(GetAppDirectory());
             Console.WriteLine("App Directory: " + startDir);
             string dir = Path.Combine(startDir, PropertiesFilePath);
 
@@ -84,10 +91,14 @@ namespace CS_Jukebox
                 GameDir = propFile.GameDir;
                 SelectedKitName = propFile.SelectedKitName;
                 MasterVolume = Math.Clamp(propFile.MasterVolume, 0, 100);
+                LimitPreviewToEventDuration = propFile.LimitPreviewToEventDuration;
+                DarkTheme = propFile.DarkTheme;
             }
             catch (FileNotFoundException)
             {
                 MasterVolume = 70;
+                LimitPreviewToEventDuration = false;
+                DarkTheme = false;
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is JsonException)
             {
@@ -95,6 +106,8 @@ namespace CS_Jukebox
                 GameDir = null;
                 SelectedKitName = null;
                 MasterVolume = 70;
+                LimitPreviewToEventDuration = false;
+                DarkTheme = false;
             }
         }
 
@@ -105,34 +118,29 @@ namespace CS_Jukebox
 
         private static string GetDataDirectory(string applicationDirectory)
         {
-            if (CanWriteToDirectory(applicationDirectory)) return applicationDirectory;
-
-            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (string.IsNullOrWhiteSpace(localAppData)) return applicationDirectory;
-
-            string fallbackDirectory = Path.Combine(localAppData, "CS-Jukebox");
-            try
+            dataDirectoryWritable = CanWriteToDirectory(applicationDirectory);
+            if (!dataDirectoryWritable)
             {
-                Directory.CreateDirectory(fallbackDirectory);
+                ReportError(
+                    "Application folder is read-only",
+                    "CS Jukebox stores properties.json and the kits folder beside CS-Jukebox.exe.\n\n" +
+                    "Move CS-Jukebox.exe to a writable folder, such as Documents, then restart the application.");
             }
-            catch (Exception e)
+            else
             {
-                ReportError("Storage directory is unavailable",
-                    "CS Jukebox cannot prepare a writable settings directory.\n\n" + e.Message);
-                return applicationDirectory;
-            }
-
-            try
-            {
-                MigrateUserData(applicationDirectory, fallbackDirectory);
-            }
-            catch (Exception e)
-            {
-                ReportError("Existing settings could not be migrated",
-                    "CS Jukebox will use a new writable settings directory.\n\n" + e.Message);
+                try
+                {
+                    ImportLegacyUserData(applicationDirectory);
+                }
+                catch (Exception e)
+                {
+                    ReportError(
+                        "Existing settings could not be imported",
+                        "CS Jukebox will continue with portable storage beside the executable.\n\n" + e.Message);
+                }
             }
 
-            return fallbackDirectory;
+            return applicationDirectory;
         }
 
         private static bool CanWriteToDirectory(string directory)
@@ -152,22 +160,40 @@ namespace CS_Jukebox
             }
         }
 
-        private static void MigrateUserData(string sourceDirectory, string destinationDirectory)
+        private static void ImportLegacyUserData(string destinationDirectory)
         {
-            string sourceProperties = Path.Combine(sourceDirectory, PropertiesFilePath);
-            string destinationProperties = Path.Combine(destinationDirectory, PropertiesFilePath);
-            if (File.Exists(sourceProperties) && !File.Exists(destinationProperties))
-                File.Copy(sourceProperties, destinationProperties);
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (string.IsNullOrWhiteSpace(localAppData)) return;
 
-            string sourceKits = Path.Combine(sourceDirectory, MusicKitsPath);
-            string destinationKits = Path.Combine(destinationDirectory, MusicKitsPath);
-            if (!Directory.Exists(sourceKits)) return;
-
-            foreach (string sourceFile in Directory.GetFiles(sourceKits, "*.json", SearchOption.TopDirectoryOnly))
+            string legacyDirectory = Path.Combine(localAppData, "CS-Jukebox");
+            if (!Directory.Exists(legacyDirectory) ||
+                string.Equals(
+                    Path.GetFullPath(legacyDirectory).TrimEnd(Path.DirectorySeparatorChar),
+                    Path.GetFullPath(destinationDirectory).TrimEnd(Path.DirectorySeparatorChar),
+                    StringComparison.OrdinalIgnoreCase))
             {
-                string destinationFile = Path.Combine(destinationKits, Path.GetFileName(sourceFile));
-                Directory.CreateDirectory(destinationKits);
-                if (!File.Exists(destinationFile)) File.Copy(sourceFile, destinationFile);
+                return;
+            }
+
+            string legacyProperties = Path.Combine(legacyDirectory, PropertiesFilePath);
+            string portableProperties = Path.Combine(destinationDirectory, PropertiesFilePath);
+            string portableKitsDirectory = Path.Combine(destinationDirectory, MusicKitsPath);
+
+            // Import only into a completely new portable data directory. This
+            // prevents deleted kits from reappearing from legacy storage later.
+            if (File.Exists(portableProperties) || Directory.Exists(portableKitsDirectory)) return;
+
+            if (File.Exists(legacyProperties) && !File.Exists(portableProperties))
+                File.Copy(legacyProperties, portableProperties);
+
+            string legacyKitsDirectory = Path.Combine(legacyDirectory, MusicKitsPath);
+            if (!Directory.Exists(legacyKitsDirectory)) return;
+
+            foreach (string legacyKit in Directory.GetFiles(legacyKitsDirectory, "*.json", SearchOption.TopDirectoryOnly))
+            {
+                Directory.CreateDirectory(portableKitsDirectory);
+                string portableKit = Path.Combine(portableKitsDirectory, Path.GetFileName(legacyKit));
+                if (!File.Exists(portableKit)) File.Copy(legacyKit, portableKit);
             }
         }
 
@@ -179,7 +205,6 @@ namespace CS_Jukebox
             string configFileName = Properties.ConfigName;
             string cfgDir = GameInstallLocator.GetConfigDirectory(Properties.GameDir);
             string configPath = Path.Combine(cfgDir, configFileName);
-            string configSrc = Path.Combine(appDir ?? GetAppDirectory(), configFileName);
 
             try
             {
@@ -189,7 +214,11 @@ namespace CS_Jukebox
                     return;
                 }
 
-                File.Copy(configSrc, configPath, true);
+                using Stream configStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ConfigResourceName);
+                if (configStream == null)
+                    throw new InvalidOperationException("The embedded GSI configuration resource is missing.");
+
+                WriteStreamAtomically(configPath, configStream);
             }
             catch (Exception e)
             {
@@ -199,6 +228,8 @@ namespace CS_Jukebox
 
         public static void SaveKits()
         {
+            if (!dataDirectoryWritable) return;
+
             string dir = KitsDirectory;
             var saveErrors = new List<string>();
             try
@@ -233,6 +264,8 @@ namespace CS_Jukebox
         {
             string dir = KitsDirectory;
             MusicKits = new List<MusicKit>();
+            if (!dataDirectoryWritable) return;
+
             string[] kitFiles;
 
             try
@@ -289,6 +322,7 @@ namespace CS_Jukebox
         //Deletes the json file for a kit but not the kit itself
         public static void DeleteKitFile(string kitName)
         {
+            if (!dataDirectoryWritable) return;
             if (!TryValidateKitFileName(kitName, out _)) return;
             string dir = KitsDirectory;
             string kitDir = Path.Combine(dir, kitName + ".json");
@@ -375,12 +409,33 @@ namespace CS_Jukebox
             }
         }
 
+        private static void WriteStreamAtomically(string path, Stream source)
+        {
+            string directory = Path.GetDirectoryName(Path.GetFullPath(path));
+            Directory.CreateDirectory(directory);
+            string temporaryPath = Path.Combine(directory,
+                "." + Path.GetFileName(path) + "." + Guid.NewGuid().ToString("N") + ".tmp");
+
+            try
+            {
+                using (var destination = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                    source.CopyTo(destination);
+                File.Move(temporaryPath, path, true);
+            }
+            finally
+            {
+                try { File.Delete(temporaryPath); } catch { }
+            }
+        }
+
         //Inner class for properties parameters
         private class PropertiesFile
         {
             public string GameDir;
             public string SelectedKitName;
             public int MasterVolume;
+            public bool LimitPreviewToEventDuration;
+            public bool DarkTheme;
         }
     }
 }
