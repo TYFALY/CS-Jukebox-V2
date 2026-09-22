@@ -12,7 +12,6 @@
     <a href="#prerequisites--download"><img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Platform"></a>
     <a href="https://dotnet.microsoft.com/download"><img src="https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt="Target"></a>
     <a href="#about-the-project"><img src="https://img.shields.io/badge/VAC-100%25_Safe-2ea44f?style=for-the-badge&logo=shield" alt="VAC Safe"></a>
-    <a href="https://www.paypal.com/paypalme/TYFALY"><img src="https://img.shields.io/badge/Donate-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="Support"></a>
   </p>
 
   <p>
