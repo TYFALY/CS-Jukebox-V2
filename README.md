@@ -1,5 +1,15 @@
 <div align="center">
 
+  <blockquote align="center">
+    <div align="center">
+      <img width="120" style="height: auto;" alt="ChickBeat" src="https://github.com/user-attachments/assets/b84b59f7-865f-4d52-8215-0bc85bca4731" />
+      <h2>Upgrade to <a href="https://github.com/TYFALY/ChickBeat">ChickBeat</a></h2>
+    </div>
+    <p><b>CS-Jukebox V2</b> is now succeeded by <b><a href="https://github.com/TYFALY/ChickBeat">ChickBeat</a></b>! Switch over for a modern redesigned UI, automated kit maker, and significantly more features.</p>
+  </blockquote>
+
+  <br />
+
   <img width="550" alt="CS-Jukebox V2 Banner" src="https://github.com/user-attachments/assets/539b2d20-e612-43bc-a9cc-b5609a9bedfa" />
 
   <h1>CS-Jukebox-V2 🎧</h1>
@@ -23,6 +33,7 @@
   </p>
 
 </div>
+
 
 ## 🎬 Showcase
 
